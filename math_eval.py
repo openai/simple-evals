@@ -7,7 +7,6 @@ https://arxiv.org/abs/2103.03874
 import random
 import re
 
-import blobfile as bf
 import pandas
 
 from . import common
@@ -92,7 +91,7 @@ def check_equality(sampler: SamplerBase, expr1: str, expr2: str):
 
 class MathEval(Eval):
     def __init__(self, equality_checker: SamplerBase, num_examples: int | None = None):
-        df = pandas.read_csv(bf.BlobFile("https://openaipublic.blob.core.windows.net/simple-evals/math_test.csv"))
+        df = pandas.read_csv("https://openaipublic.blob.core.windows.net/simple-evals/math_test.csv")
         examples = [row.to_dict() for _, row in df.iterrows()]
         if num_examples:
             examples = random.Random(0).sample(examples, num_examples)
