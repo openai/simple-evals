@@ -22,7 +22,7 @@ from human_eval.execution import check_correctness  # , unsafe_execute
 
 from . import common
 from .mmlu_eval import HTML_JINJA
-from .types import Eval, EvalResult, SamplerBase, SingleEvalResult
+from .eval_types import Eval, EvalResult, SamplerBase, SingleEvalResult
 
 
 def evaluate_functional_correctness(
@@ -84,9 +84,12 @@ class HumanEval(Eval):
             return extracted_answer
 
         def fn(sample: dict[str, str]):
-            prompt_messages = [{"role": "user", "content": instruction + sample["prompt"]}]
+            prompt_messages = [
+                {"role": "user", "content": instruction + sample["prompt"]}
+            ]
             completions = [
-                find_code(sampler(prompt_messages)) for _ in range(self._num_samples_per_task)
+                find_code(sampler(prompt_messages))
+                for _ in range(self._num_samples_per_task)
             ]
             results = evaluate_functional_correctness(sample, completions)
             total = len(results)

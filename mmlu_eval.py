@@ -11,7 +11,7 @@ import blobfile as bf
 import pandas
 
 from . import common
-from .types import Eval, EvalResult, SamplerBase, SingleEvalResult
+from .eval_types import Eval, EvalResult, SamplerBase, SingleEvalResult
 
 QUERY_TEMPLATE = """
 Answer the following multiple choice question. The last line of your response should be of the following format: 'ANSWER: $LETTER' (without quotes) where LETTER is one of ABCD. Think step by step before answering.
@@ -95,7 +95,9 @@ subject2category = {
 class MMLUEval(Eval):
     def __init__(self, num_examples: int | None = None):
         df = pandas.read_csv(
-            bf.BlobFile("https://openaipublic.blob.core.windows.net/simple-evals/mmlu.csv")
+            bf.BlobFile(
+                "https://openaipublic.blob.core.windows.net/simple-evals/mmlu.csv"
+            )
         )
         examples = [row.to_dict() for _, row in df.iterrows()]
         if num_examples:
@@ -118,7 +120,9 @@ class MMLUEval(Eval):
             )
             convo = prompt_messages + [dict(content=response_text, role="assistant")]
             category = subject2category.get(row["Subject"], "other")
-            return SingleEvalResult(html=html, score=score, metrics={category: score}, convo=convo)
+            return SingleEvalResult(
+                html=html, score=score, metrics={category: score}, convo=convo
+            )
 
         results = common.map_with_progress(fn, self.examples)
         return common.aggregate_results(results)

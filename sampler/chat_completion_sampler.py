@@ -3,7 +3,7 @@ import time
 import openai
 from openai import OpenAI
 
-from ..types import MessageList, SamplerBase
+from ..eval_types import MessageList, SamplerBase
 
 OPENAI_SYSTEM_MESSAGE_API = "You are a helpful assistant."
 OPENAI_SYSTEM_MESSAGE_CHATGPT = (
@@ -35,7 +35,9 @@ class ChatCompletionSampler(SamplerBase):
 
     def __call__(self, message_list: MessageList) -> str:
         if self.system_message:
-            message_list = [{"role": "system", "content": self.system_message}] + message_list
+            message_list = [
+                {"role": "system", "content": self.system_message}
+            ] + message_list
         trial = 0
         while True:
             try:
