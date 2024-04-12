@@ -247,7 +247,6 @@ class DropEval(Eval):
         self.test_jsonl = (
             "https://openaipublic.blob.core.windows.net/simple-evals/drop_v0_dev.jsonl.gz"
         )
-        breakpoint()
         with gzip.GzipFile(fileobj=urllib.request.urlopen(self.train_jsonl), mode="rb") as f:
             self.train_samples = list(map(json.loads, f.readlines()))
         with gzip.GzipFile(fileobj=urllib.request.urlopen(self.test_jsonl), mode="rb") as f:
