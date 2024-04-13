@@ -14,7 +14,6 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from io import BytesIO
 from typing import Any, Tuple
 
-import blobfile as bf
 import tqdm
 from human_eval.data import HUMAN_EVAL, read_problems
 from human_eval.evaluation import estimate_pass_at_k
