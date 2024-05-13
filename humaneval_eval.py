@@ -21,7 +21,7 @@ from human_eval.evaluation import estimate_pass_at_k
 from human_eval.execution import check_correctness  # , unsafe_execute
 
 from . import common
-from .mmlu_eval import HTML_JINJA
+from .common import HTML_JINJA
 from .types import Eval, EvalResult, SamplerBase, SingleEvalResult
 
 
@@ -84,7 +84,9 @@ class HumanEval(Eval):
             return extracted_answer
 
         def fn(sample: dict[str, str]):
-            prompt_messages = [{"role": "user", "content": instruction + sample["prompt"]}]
+            prompt_messages = [
+                sampler._pack_mesage(role="user", content=instruction + sample["prompt"])
+            ]
             completions = [
                 find_code(sampler(prompt_messages)) for _ in range(self._num_samples_per_task)
             ]

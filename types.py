@@ -1,6 +1,7 @@
 from dataclasses import dataclass, field
+from typing import Any
 
-Message = dict[str, str]  # keys role, content
+Message = dict[str, Any]  # keys role, content
 MessageList = list[Message]
 
 

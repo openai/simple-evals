@@ -16,7 +16,7 @@ import numpy as np
 from scipy.optimize import linear_sum_assignment
 
 from . import common
-from .mmlu_eval import HTML_JINJA
+from .common import ANSWER_PATTERN, HTML_JINJA
 from .types import Eval, EvalResult, SamplerBase, SingleEvalResult
 
 """
@@ -27,8 +27,6 @@ Then cleaned up and modified a bit.
 The rest was originally copied from https://github.com/allenai/allennlp-reading-comprehension/blob/master/allennlp_rc
 /eval/drop_eval.py
 """
-
-ANSWER_PATTERN = r"(?i)Answer\s*:\s*([^\n]+)"
 
 
 def _remove_articles(text: str) -> str:
@@ -282,7 +280,7 @@ class DropEval(Eval):
                     prompt += """\n
 Think step by step, then write a line of the form "Answer: $ANSWER" at the end of your response.
                     """
-                    prompt_messages = [dict(content=prompt, role="user")]
+                    prompt_messages = [sampler._pack_message(content=prompt, role="user")]
                     response_text = sampler(prompt_messages)
                     match = re.search(ANSWER_PATTERN, response_text)
                     extracted_answer = match.group(1) if match else response_text

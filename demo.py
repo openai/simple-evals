@@ -31,6 +31,16 @@ def main():
             model="gpt-4-turbo-2024-04-09",
             system_message=OPENAI_SYSTEM_MESSAGE_CHATGPT,
         ),
+        "gpt-4o_assistant": ChatCompletionSampler(
+            model="gpt-4o",
+            system_message=OPENAI_SYSTEM_MESSAGE_API,
+            max_tokens=2048,
+        ),
+        "gpt-4o_chatgpt": ChatCompletionSampler(
+            model="gpt-4o",
+            system_message=OPENAI_SYSTEM_MESSAGE_CHATGPT,
+            max_tokens=2048,
+        ),
         # claude models:
         # "claude-3-opus-20240229_empty": ClaudeCompletionSampler(
         #     model="claude-3-opus-20240229", system_message=None,
@@ -38,8 +48,8 @@ def main():
     }
 
     equality_checker = ChatCompletionSampler(model="gpt-4-turbo-preview")
-
     # ^^^ used for fuzzy matching, just for math
+
     def get_evals(eval_name):
         match eval_name:
             case "mmlu":

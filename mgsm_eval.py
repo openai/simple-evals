@@ -159,7 +159,9 @@ class MGSMEval(Eval):
             correct_answer = example["targets"]
             instructoin = LANG_TO_INSTRUCTIONS[language]
             prompt_messages = [
-                dict(content=instructoin.format(input=example["inputs"]), role="user")
+                sampler._pack_message(
+                    content=instructoin.format(input=example["inputs"]), role="user"
+                )
             ]
             try:
                 response_text = sampler(prompt_messages)
