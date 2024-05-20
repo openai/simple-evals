@@ -85,7 +85,7 @@ class HumanEval(Eval):
 
         def fn(sample: dict[str, str]):
             prompt_messages = [
-                sampler._pack_mesage(role="user", content=instruction + sample["prompt"])
+                sampler._pack_message(role="user", content=instruction + sample["prompt"])
             ]
             completions = [
                 find_code(sampler(prompt_messages)) for _ in range(self._num_samples_per_task)
