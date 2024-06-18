@@ -127,3 +127,11 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# Clean up
+# old/
+output/
+.lightning_studio/
+.vscode/
+.idea/
+.viminfo

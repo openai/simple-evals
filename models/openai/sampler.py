@@ -1,34 +1,29 @@
 import base64
 import time
-from typing import Any
-
-import openai
+from typing import Any, Optional, Dict, List
 from openai import OpenAI
+from logging import getLogger
 
-from ..types import MessageList, SamplerBase
+from typings import MessageList
+from models.base import SamplerBase
 
-OPENAI_SYSTEM_MESSAGE_API = "You are a helpful assistant."
-OPENAI_SYSTEM_MESSAGE_CHATGPT = (
-    "You are ChatGPT, a large language model trained by OpenAI, based on the GPT-4 architecture."
-    + "\nKnowledge cutoff: 2023-12\nCurrent date: 2024-04-01"
-)
+logger = getLogger(__name__)
 
+MAX_ALLOWED_TRIALS = 5
 
-class ChatCompletionSampler(SamplerBase):
+class OpenAISampler(SamplerBase):
     """
     Sample from OpenAI's chat completion API
     """
 
     def __init__(
         self,
-        model: str = "gpt-3.5-turbo",
-        system_message: str | None = None,
+        model: str,
+        system_message: Optional[str] = None,
         temperature: float = 0.5,
         max_tokens: int = 1024,
     ):
-        self.api_key_name = "OPENAI_API_KEY"
-        self.client = OpenAI()
-        # using api_key=os.environ.get("OPENAI_API_KEY")  # please set your API_KEY
+        self.client = OpenAI() # using api_key=os.environ.get("OPENAI_API_KEY")
         self.model = model
         self.system_message = system_message
         self.temperature = temperature
@@ -55,8 +50,9 @@ class ChatCompletionSampler(SamplerBase):
     def __call__(self, message_list: MessageList) -> str:
         if self.system_message:
             message_list = [self._pack_message("system", self.system_message)] + message_list
+        
         trial = 0
-        while True:
+        while trial < MAX_ALLOWED_TRIALS:
             try:
                 response = self.client.chat.completions.create(
                     model=self.model,
@@ -65,16 +61,38 @@ class ChatCompletionSampler(SamplerBase):
                     max_tokens=self.max_tokens,
                 )
                 return response.choices[0].message.content
-            # NOTE: BadRequestError is triggered once for MMMU, please uncomment if you are reruning MMMU
-            except openai.BadRequestError as e:
-                print("Bad Request Error", e)
-                return ""
             except Exception as e:
                 exception_backoff = 2**trial  # expontial back off
-                print(
+                logger.warn(
                     f"Rate limit exception so wait and retry {trial} after {exception_backoff} sec",
                     e,
                 )
                 time.sleep(exception_backoff)
                 trial += 1
-            # unknown error shall throw exception
+
+class GPT4oSampler(OpenAISampler):
+    def __init__(self, system_message: Optional[str] = None, temperature: float = 0.5, max_tokens: int = 1024):
+        super().__init__(
+            model="gpt-4o",
+            system_message=system_message,
+            temperature=temperature,
+            max_tokens=max_tokens,
+        )
+
+class GPT4TurboSampler(OpenAISampler):
+    def __init__(self, system_message: Optional[str] = None, temperature: float = 0.5, max_tokens: int = 1024):
+        super().__init__(
+            model="gpt-4-turbo",
+            system_message=system_message,
+            temperature=temperature,
+            max_tokens=max_tokens,
+       )
+
+class GPT3_5TurboSampler(OpenAISampler):
+    def __init__(self, system_message: Optional[str] = None, temperature: float = 0.5, max_tokens: int = 1024):
+        super().__init__(
+            model="gpt-3.5-turbo",
+            system_message=system_message,
+            temperature=temperature,
+            max_tokens=max_tokens,
+        )

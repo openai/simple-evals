@@ -1,6 +1,5 @@
 import json
 import time
-
 import pandas as pd
 
 from . import common
@@ -10,13 +9,11 @@ from .humaneval_eval import HumanEval
 from .math_eval import MathEval
 from .mgsm_eval import MGSMEval
 from .mmlu_eval import MMLUEval
-from .sampler.chat_completion_sampler import (
+from sampler.chat_completion_sampler import (
     OPENAI_SYSTEM_MESSAGE_API,
     OPENAI_SYSTEM_MESSAGE_CHATGPT,
     ChatCompletionSampler,
 )
-
-# from .sampler.claude_sampler import ClaudeCompletionSampler, CLAUDE_SYSTEM_MESSAGE_LMSYS
 
 
 def main():
