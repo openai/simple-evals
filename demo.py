@@ -41,6 +41,11 @@ def main():
             system_message=OPENAI_SYSTEM_MESSAGE_CHATGPT,
             max_tokens=2048,
         ),
+        "gpt-4o-mini-2024-07-18": ChatCompletionSampler(
+            model="gpt-4o-mini-2024-07-18",
+            system_message=OPENAI_SYSTEM_MESSAGE_API,
+            max_tokens=2048,
+        ),
         # claude models:
         # "claude-3-opus-20240229_empty": ClaudeCompletionSampler(
         #     model="claude-3-opus-20240229", system_message=None,
@@ -51,6 +56,7 @@ def main():
     # ^^^ used for fuzzy matching, just for math
 
     def get_evals(eval_name):
+        # Set num_examples = None to reproduce full evals
         match eval_name:
             case "mmlu":
                 return MMLUEval(num_examples=1 if debug else 2500)
