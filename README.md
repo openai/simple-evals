@@ -75,6 +75,8 @@ This will launch evaluations through the OpenAI API.
 | gpt-4-1106(-vision)-preview | assistant     |  84.7  |  42.5  |  64.3  |    83.7   |   87.1  |  83.2  |
 | gpt-4-0125-preview          | chatgpt       |  84.8  |  39.7  |  64.2  |    88.2   |   83.7  |  83.4  |
 | gpt-4-0125-preview          | assistant     |  85.4  |  41.4  |  64.5  |    86.6   |   85.1  |  81.5  |
+| ===                         |               |        |        |        |           |         |        |
+| gpt-4o-mini-2024-07-18      | assistant     |  82.0  |  40.2  |  70.2  |    87.2   |   87.0  |  79.7  |
 | REFERENCE-RERUN             |               |         |        |        |           |         |        |
 | Claude-3-Opus (rerun w/ api) | empty[^3]     |  84.1  |  49.7  |   63.2 |   84.8   |   89.7  |  79.0  |
 | Claude-3-Opus (rerun w/ api) | lmsys[^4]     |  84.2  |  50.7  |  63.8  |   82.9   |   89.2  |  77.1  |
