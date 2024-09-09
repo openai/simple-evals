@@ -15,6 +15,8 @@ from .sampler.reflection_sampler import (
     ChatCompletionSampler,
 )
 
+from .sampler.chat_completion_sampler import ChatCompletionSampler as CheckerSampler
+
 
 def main():
     debug = True
@@ -29,7 +31,7 @@ def main():
         ),
     }
 
-    equality_checker = ChatCompletionSampler(model="gpt-4-turbo-preview")
+    equality_checker = CheckerSampler(model="gpt-4-turbo-preview")
     # ^^^ used for fuzzy matching, just for math
 
     def get_evals(eval_name):
