@@ -6,9 +6,7 @@ https://arxiv.org/abs/2311.12022
 
 import random
 import re
-import os
 
-import blobfile as bf
 import pandas
 
 from . import common
@@ -23,9 +21,7 @@ class GPQAEval(Eval):
         variant: str = "diamond",
         num_examples: int | None = None,  # restrict to a subset of the data for debugging
     ):
-        # wget https://openaipublic.blob.core.windows.net/simple-evals/gpqa_diamond.csv
-        path = os.path.dirname(os.path.abspath(__file__))
-        df = pandas.read_csv(os.path.join(path, "gpqa_diamond.csv"))
+        df = pandas.read_csv(f"https://openaipublic.blob.core.windows.net/simple-evals/gpqa_{variant}.csv")
         examples = [row.to_dict() for _, row in df.iterrows()]
         rng = random.Random(0)
         if num_examples:

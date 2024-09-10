@@ -6,9 +6,7 @@ https://arxiv.org/abs/2009.03300
 
 import random
 import re
-import os
 
-import blobfile as bf
 import pandas
 
 from . import common
@@ -78,10 +76,7 @@ subject2category = {
 
 class MMLUEval(Eval):
     def __init__(self, num_examples: int | None = None):
-        # wget https://openaipublic.blob.core.windows.net/simple-evals/mmlu.csv
-        path = os.path.dirname(os.path.abspath(__file__))
-        df = pandas.read_csv(os.path.join(path, "mmlu.csv"))
-
+        df = pandas.read_csv("https://openaipublic.blob.core.windows.net/simple-evals/mmlu.csv")
         examples = [row.to_dict() for _, row in df.iterrows()]
         if num_examples:
             examples = random.Random(0).sample(examples, num_examples)
