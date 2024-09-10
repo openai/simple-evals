@@ -31,7 +31,8 @@ def main():
     samplers = {
         # chatgpt models:
         "reflection_70b": ChatCompletionSampler(
-            model="reflection_70b",
+            # model="reflection_70b",
+            model="shareweights/v5_70",
             system_message=REFLECTION_SYSTEM_MESSAGE,
             client=client
         ),
