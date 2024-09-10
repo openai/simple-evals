@@ -26,7 +26,7 @@ def main():
         api_key= "test"
         )
     
-    real_openai = OpenAI()
+    # real_openai = OpenAI()
 
     samplers = {
         # chatgpt models:
