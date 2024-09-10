@@ -55,7 +55,7 @@ def evaluate_functional_correctness(
 class HumanEval(Eval):
     def __init__(
         self,
-        num_examples: int = 250,  # restrict to a subset of the data for debugging
+        num_examples: int = 164,  # restrict to a subset of the data for debugging
         num_samples_per_task: int = 5,
         ks_passes: list[int] = [1, 2, 5],
         timeout: int = 120,
