@@ -11,7 +11,7 @@ from .humaneval_eval import HumanEval
 from .math_eval import MathEval
 from .mmlu_eval import MMLUEval
 from .sampler.reflection_sampler import (
-    REFLECTION_SYSTEM_MESSAGE,,
+    REFLECTION_SYSTEM_MESSAGE,
     ChatCompletionSampler,
 )
 
@@ -21,7 +21,13 @@ from .sampler.chat_completion_sampler import ChatCompletionSampler as CheckerSam
 def main():
     debug = True
   # init your client
-    client = OpenAI()
+    client = OpenAI(
+        base_url="http://0.0.0.0:8000/v1/",
+        api_key= "test"
+        )
+    
+    real_openai = OpenAI()
+
     samplers = {
         # chatgpt models:
         "reflection_70b": ChatCompletionSampler(
