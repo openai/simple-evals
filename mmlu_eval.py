@@ -11,7 +11,14 @@ import blobfile as bf
 import pandas
 
 from . import common
-from .common import ANSWER_PATTERN_MULTICHOICE, HTML_JINJA, format_multichoice_question
+from .common import (
+    HTML_JINJA,
+    MULTILINGUAL_ANSWER_PATTERN_TEMPLATE,
+    MULTILINGUAL_ANSWER_REGEXES,
+    format_multichoice_question,
+    normalize_extracted_answer,
+    normalize_response,
+)
 from .types import Eval, EvalResult, SamplerBase, SingleEvalResult
 
 subject2category = {
@@ -76,10 +83,12 @@ subject2category = {
 
 
 class MMLUEval(Eval):
-    def __init__(self, num_examples: int | None = None):
-        df = pandas.read_csv(
-            bf.BlobFile("https://openaipublic.blob.core.windows.net/simple-evals/mmlu.csv")
-        )
+    def __init__(self, num_examples: int | None = None, language: str = "EN-US"):
+        if language != "EN-US":
+            url = f"https://openaipublic.blob.core.windows.net/simple-evals/mmlu_{language}.csv"
+        else:
+            url = "https://openaipublic.blob.core.windows.net/simple-evals/mmlu.csv"
+        df = pandas.read_csv(bf.BlobFile(url))
         examples = [row.to_dict() for _, row in df.iterrows()]
         if num_examples:
             examples = random.Random(0).sample(examples, num_examples)
@@ -88,11 +97,18 @@ class MMLUEval(Eval):
     def __call__(self, sampler: SamplerBase) -> EvalResult:
         def fn(row: dict):
             prompt_messages = [
-                sampler._pack_message(content=format_multichoice_question(row), role="user")
+                sampler._pack_message(
+                    content=format_multichoice_question(row), role="user"
+                )
             ]
-            response_text = sampler(prompt_messages)
-            match = re.search(ANSWER_PATTERN_MULTICHOICE, response_text)
-            extracted_answer = match.group(1) if match else None
+            response_text = normalize_response(sampler(prompt_messages))
+            extracted_answer = None
+            for answer_regex in MULTILINGUAL_ANSWER_REGEXES:
+                regex = MULTILINGUAL_ANSWER_PATTERN_TEMPLATE.format(answer_regex)
+                match = re.search(regex, response_text)
+                if match:
+                    extracted_answer = normalize_extracted_answer(match.group(1))
+                    break
             score = 1.0 if extracted_answer == row["Answer"] else 0.0
             html = common.jinja_env.from_string(HTML_JINJA).render(
                 prompt_messages=prompt_messages,
@@ -103,7 +119,9 @@ class MMLUEval(Eval):
             )
             convo = prompt_messages + [dict(content=response_text, role="assistant")]
             category = subject2category.get(row["Subject"], "other")
-            return SingleEvalResult(html=html, score=score, metrics={category: score}, convo=convo)
+            return SingleEvalResult(
+                html=html, score=score, metrics={category: score}, convo=convo
+            )
 
         results = common.map_with_progress(fn, self.examples)
         return common.aggregate_results(results)
