@@ -6,6 +6,7 @@ https://arxiv.org/abs/2103.03874
 
 import random
 import re
+from typing import Literal
 
 import blobfile as bf
 import pandas
@@ -24,14 +25,22 @@ Remember to put your answer on its own line after "Answer:", and you do not need
 
 
 class MathEval(Eval):
-    def __init__(self, equality_checker: SamplerBase, num_examples: int | None = None):
+    def __init__(
+        self,
+        equality_checker: SamplerBase,
+        num_examples: int | None = None,
+        n_repeats: int = 16,
+        split: Literal["math_test", "math_500_test"] = "math_test",
+    ):
         df = pandas.read_csv(
-            bf.BlobFile("https://openaipublic.blob.core.windows.net/simple-evals/math_test.csv")
+            bf.BlobFile(f"https://openaipublic.blob.core.windows.net/simple-evals/{split}.csv")
         )
         examples = [row.to_dict() for _, row in df.iterrows()]
         if num_examples:
-            examples = random.Random(0).sample(examples, num_examples)
-        self.examples = examples
+            assert n_repeats == 1, "n_repeats only supported for num_examples = None"
+            rng = random.Random(0)
+            examples = rng.sample(examples, num_examples)
+        self.examples = examples * n_repeats
         self.equality_checker = equality_checker
 
     def __call__(self, sampler: SamplerBase) -> EvalResult:
