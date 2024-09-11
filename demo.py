@@ -15,6 +15,7 @@ from .sampler.chat_completion_sampler import (
     OPENAI_SYSTEM_MESSAGE_CHATGPT,
     ChatCompletionSampler,
 )
+from .sampler.o1_chat_completion_sampler import O1ChatCompletionSampler
 
 # from .sampler.claude_sampler import ClaudeCompletionSampler, CLAUDE_SYSTEM_MESSAGE_LMSYS
 
@@ -23,6 +24,12 @@ def main():
     debug = True
     samplers = {
         # chatgpt models:
+        "o1-preview": O1ChatCompletionSampler(
+            model="o1-preview",
+        ),
+        "o1-mini": O1ChatCompletionSampler(
+            model="o1-mini",
+        ),
         "gpt-4-turbo-2024-04-09_assistant": ChatCompletionSampler(
             model="gpt-4-turbo-2024-04-09",
             system_message=OPENAI_SYSTEM_MESSAGE_API,
