@@ -1,14 +1,8 @@
 import json
-import time
 
 import pandas as pd
 
 from . import common
-from .drop_eval import DropEval
-from .gpqa_eval import GPQAEval
-from .humaneval_eval import HumanEval
-from .math_eval import MathEval
-from .mgsm_eval import MGSMEval
 from .mmlu_eval import MMLUEval
 from .sampler.chat_completion_sampler import (
     OPENAI_SYSTEM_MESSAGE_API,
@@ -17,32 +11,10 @@ from .sampler.chat_completion_sampler import (
 )
 from .sampler.o1_chat_completion_sampler import O1ChatCompletionSampler
 
-# from .sampler.claude_sampler import ClaudeCompletionSampler, CLAUDE_SYSTEM_MESSAGE_LMSYS
-
 
 def main():
     debug = True
     samplers = {
-        # chatgpt models:
-        "o1-preview": O1ChatCompletionSampler(
-            model="o1-preview",
-        ),
-        "o1-mini": O1ChatCompletionSampler(
-            model="o1-mini",
-        ),
-        "gpt-4-turbo-2024-04-09_assistant": ChatCompletionSampler(
-            model="gpt-4-turbo-2024-04-09",
-            system_message=OPENAI_SYSTEM_MESSAGE_API,
-        ),
-        "gpt-4-turbo-2024-04-09_chatgpt": ChatCompletionSampler(
-            model="gpt-4-turbo-2024-04-09",
-            system_message=OPENAI_SYSTEM_MESSAGE_CHATGPT,
-        ),
-        "gpt-4o_assistant": ChatCompletionSampler(
-            model="gpt-4o",
-            system_message=OPENAI_SYSTEM_MESSAGE_API,
-            max_tokens=2048,
-        ),
         "gpt-4o_chatgpt": ChatCompletionSampler(
             model="gpt-4o",
             system_message=OPENAI_SYSTEM_MESSAGE_CHATGPT,
@@ -53,37 +25,68 @@ def main():
             system_message=OPENAI_SYSTEM_MESSAGE_API,
             max_tokens=2048,
         ),
-        # claude models:
-        # "claude-3-opus-20240229_empty": ClaudeCompletionSampler(
-        #     model="claude-3-opus-20240229", system_message=None,
-        # ),
+        "o1-preview": O1ChatCompletionSampler(
+            model="o1-preview",
+        ),
+        "o1-mini": O1ChatCompletionSampler(
+            model="o1-mini",
+        ),
     }
 
-    equality_checker = ChatCompletionSampler(model="gpt-4-turbo-preview")
-    # ^^^ used for fuzzy matching, just for math
-
     def get_evals(eval_name):
-        # Set num_examples = None to reproduce full evals
         match eval_name:
-            case "mmlu":
-                return MMLUEval(num_examples=1 if debug else 2500)
-            case "math":
-                return MathEval(
-                    equality_checker=equality_checker, num_examples=5 if debug else 2500
-                )
-            case "gpqa":
-                return GPQAEval(n_repeats=1 if debug else 10, num_examples=5 if debug else None)
-            case "mgsm":
-                return MGSMEval(num_examples_per_lang=10 if debug else 250)
-            case "drop":
-                return DropEval(num_examples=10 if debug else 2000, train_samples_per_prompt=3)
-            case "humaneval":
-                return HumanEval(num_examples=10 if debug else None)
+            case "mmlu_EN-US":
+                return MMLUEval(num_examples=10 if debug else None, language="EN-US")
+            case "mmlu_AR-XY":
+                return MMLUEval(num_examples=10 if debug else None, language="AR-XY")
+            case "mmlu_BN-BD":
+                return MMLUEval(num_examples=10 if debug else None, language="BN-BD")
+            case "mmlu_DE-DE":
+                return MMLUEval(num_examples=10 if debug else None, language="DE-DE")
+            case "mmlu_ES-LA":
+                return MMLUEval(num_examples=10 if debug else None, language="ES-LA")
+            case "mmlu_FR-FR":
+                return MMLUEval(num_examples=10 if debug else None, language="FR-FR")
+            case "mmlu_HI-IN":
+                return MMLUEval(num_examples=10 if debug else None, language="HI-IN")
+            case "mmlu_ID-ID":
+                return MMLUEval(num_examples=10 if debug else None, language="ID-ID")
+            case "mmlu_IT-IT":
+                return MMLUEval(num_examples=10 if debug else None, language="IT-IT")
+            case "mmlu_JA-JP":
+                return MMLUEval(num_examples=10 if debug else None, language="JA-JP")
+            case "mmlu_KO-KR":
+                return MMLUEval(num_examples=10 if debug else None, language="KO-KR")
+            case "mmlu_PT-BR":
+                return MMLUEval(num_examples=10 if debug else None, language="PT-BR")
+            case "mmlu_ZH-CN":
+                return MMLUEval(num_examples=10 if debug else None, language="ZH-CN")
+            case "mmlu_SW-KE":
+                return MMLUEval(num_examples=10 if debug else None, language="SW-KE")
+            case "mmlu_YO-NG":
+                return MMLUEval(num_examples=10 if debug else None, language="YO-NG")
             case _:
                 raise Exception(f"Unrecoginized eval type: {eval_name}")
 
     evals = {
-        eval_name: get_evals(eval_name) for eval_name in ["mmlu", "math", "gpqa", "mgsm", "drop"]
+        eval_name: get_evals(eval_name)
+        for eval_name in [
+            "mmlu_AR-XY",
+            "mmlu_BN-BD",
+            "mmlu_DE-DE",
+            "mmlu_EN-US",
+            "mmlu_ES-LA",
+            "mmlu_FR-FR",
+            "mmlu_HI-IN",
+            "mmlu_ID-ID",
+            "mmlu_IT-IT",
+            "mmlu_JA-JP",
+            "mmlu_KO-KR",
+            "mmlu_PT-BR",
+            "mmlu_ZH-CN",
+            "mmlu_SW-KE",
+            "mmlu_YO-NG",
+        ]
     }
     print(evals)
     debug_suffix = "_DEBUG" if debug else ""
