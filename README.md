@@ -98,7 +98,7 @@ This will launch evaluations through the OpenAI API.
 [^3]:claude-3 empty system message: suggested by Anthropic API doc, and we have done limited experiments due to [rate limit](https://docs.anthropic.com/claude/reference/rate-limits) issues, but we welcome PRs with alternative choices.
 [^4]:claude-3 lmsys system message: system message in LMSYS [Fast-chat open source code](https://github.com/lm-sys/FastChat/blob/7899355ebe32117fdae83985cf8ee476d2f4243f/fastchat/conversation.py#L894): "The assistant is Claude, created by Anthropic. The current date is {{currentDateTime}}. Claude's knowledge base was last updated ... ". We have done limited experiments due to [rate limit](https://docs.anthropic.com/claude/reference/rate-limits) issues, but we welcome PRs with alternative choices.
 [^5]:We believe these evals are saturated for our newer models, but are reporting them for completeness.
-[^6]:For o1 models, we evaluate on [MATH-500](https://github.com/openai/prm800k/tree/main/prm800k/math_splits), which is an newer, IID version of MATH.
+[^6]:For o1 models, we evaluate on [MATH-500](https://github.com/openai/prm800k/tree/main/prm800k/math_splits), which is a newer, IID version of MATH.
 [^7]:o1 models do not support using a system prompt.
 
 ## Legal Stuff
