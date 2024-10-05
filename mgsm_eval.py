@@ -165,7 +165,7 @@ class MGSMEval(Eval):
             ]
             try:
                 response_text = sampler(prompt_messages)
-            except Exception as e:
+            except Exception:
                 response_text = ""
 
             answer_prefix = LANG_TO_ANSWER_PREFIX[language]
