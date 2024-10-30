@@ -5,7 +5,7 @@ import pandas as pd
 from . import common
 from .drop_eval import DropEval
 from .gpqa_eval import GPQAEval
-from .humaneval_eval import HumanEval
+# from .humaneval_eval import HumanEval
 from .math_eval import MathEval
 from .mgsm_eval import MGSMEval
 from .mmlu_eval import MMLUEval
@@ -17,20 +17,20 @@ from .sampler.chat_completion_sampler import (
 )
 from .sampler.o1_chat_completion_sampler import O1ChatCompletionSampler
 
-# from .sampler.claude_sampler import ClaudeCompletionSampler, CLAUDE_SYSTEM_MESSAGE_LMSYS
+from .sampler.claude_sampler import ClaudeCompletionSampler, CLAUDE_SYSTEM_MESSAGE_LMSYS
 
 
 def main():
-    debug = False
+    debug = True
     n_repeats = 16
     samplers = {
         # chatgpt models:
-        "o1-preview": O1ChatCompletionSampler(
-            model="o1-preview",
-        ),
-        "o1-mini": O1ChatCompletionSampler(
-            model="o1-mini",
-        ),
+        # "o1-preview": O1ChatCompletionSampler(
+        #     model="o1-preview",
+        # ),
+        # "o1-mini": O1ChatCompletionSampler(
+        #     model="o1-mini",
+        # ),
         # "gpt-4-turbo-2024-04-09_assistant": ChatCompletionSampler(
         #     model="gpt-4-turbo-2024-04-09",
         #     system_message=OPENAI_SYSTEM_MESSAGE_API,
@@ -44,17 +44,20 @@ def main():
         #     system_message=OPENAI_SYSTEM_MESSAGE_API,
         #     max_tokens=2048,
         # ),
-        "gpt-4o_chatgpt": ChatCompletionSampler(
-            model="gpt-4o",
-            system_message=OPENAI_SYSTEM_MESSAGE_CHATGPT,
-            max_tokens=2048,
-        ),
-        "gpt-4o-mini-2024-07-18": ChatCompletionSampler(
-            model="gpt-4o-mini-2024-07-18",
-            system_message=OPENAI_SYSTEM_MESSAGE_API,
-            max_tokens=2048,
-        ),
+        # "gpt-4o_chatgpt": ChatCompletionSampler(
+        #     model="gpt-4o",
+        #     system_message=OPENAI_SYSTEM_MESSAGE_CHATGPT,
+        #     max_tokens=2048,
+        # ),
+        # "gpt-4o-mini-2024-07-18": ChatCompletionSampler(
+        #     model="gpt-4o-mini-2024-07-18",
+        #     system_message=OPENAI_SYSTEM_MESSAGE_API,
+        #     max_tokens=2048,
+        # ),
         # claude models:
+        "claude-3-opus-20240229_empty": ClaudeCompletionSampler(
+            model="claude-3-opus-20240229", system_message=None,
+        ),
         # "claude-3-opus-20240229_empty": ClaudeCompletionSampler(
         #     model="claude-3-opus-20240229", system_message=None,
         # ),
@@ -81,8 +84,8 @@ def main():
                 return MGSMEval(num_examples_per_lang=10 if debug else 250)
             case "drop":
                 return DropEval(num_examples=10 if debug else 2000, train_samples_per_prompt=3)
-            case "humaneval":
-                return HumanEval(num_examples=10 if debug else None)
+            # case "humaneval":
+            #     return HumanEval(num_examples=10 if debug else None)
             case "simpleqa":
                 return SimpleQAEval(
                     grader_model = grading_sampler, 
