@@ -1,8 +1,7 @@
 import json
 import time
 
-import pandas as pd
-
+import pandas as pd  
 from . import common
 from .drop_eval import DropEval
 from .gpqa_eval import GPQAEval
@@ -10,6 +9,7 @@ from .humaneval_eval import HumanEval
 from .math_eval import MathEval
 from .mgsm_eval import MGSMEval
 from .mmlu_eval import MMLUEval
+from .simpleqa_eval import SimpleQAEval 
 from .sampler.chat_completion_sampler import (
     OPENAI_SYSTEM_MESSAGE_API,
     OPENAI_SYSTEM_MESSAGE_CHATGPT,
@@ -21,7 +21,8 @@ from .sampler.o1_chat_completion_sampler import O1ChatCompletionSampler
 
 
 def main():
-    debug = True
+    debug = False
+    n_repeats = 16
     samplers = {
         # chatgpt models:
         "o1-preview": O1ChatCompletionSampler(
@@ -30,19 +31,19 @@ def main():
         "o1-mini": O1ChatCompletionSampler(
             model="o1-mini",
         ),
-        "gpt-4-turbo-2024-04-09_assistant": ChatCompletionSampler(
-            model="gpt-4-turbo-2024-04-09",
-            system_message=OPENAI_SYSTEM_MESSAGE_API,
-        ),
-        "gpt-4-turbo-2024-04-09_chatgpt": ChatCompletionSampler(
-            model="gpt-4-turbo-2024-04-09",
-            system_message=OPENAI_SYSTEM_MESSAGE_CHATGPT,
-        ),
-        "gpt-4o_assistant": ChatCompletionSampler(
-            model="gpt-4o",
-            system_message=OPENAI_SYSTEM_MESSAGE_API,
-            max_tokens=2048,
-        ),
+        # "gpt-4-turbo-2024-04-09_assistant": ChatCompletionSampler(
+        #     model="gpt-4-turbo-2024-04-09",
+        #     system_message=OPENAI_SYSTEM_MESSAGE_API,
+        # ),
+        # "gpt-4-turbo-2024-04-09_chatgpt": ChatCompletionSampler(
+        #     model="gpt-4-turbo-2024-04-09",
+        #     system_message=OPENAI_SYSTEM_MESSAGE_CHATGPT,
+        # ),
+        # "gpt-4o_assistant": ChatCompletionSampler(
+        #     model="gpt-4o",
+        #     system_message=OPENAI_SYSTEM_MESSAGE_API,
+        #     max_tokens=2048,
+        # ),
         "gpt-4o_chatgpt": ChatCompletionSampler(
             model="gpt-4o",
             system_message=OPENAI_SYSTEM_MESSAGE_CHATGPT,
@@ -59,6 +60,7 @@ def main():
         # ),
     }
 
+    grading_sampler = ChatCompletionSampler(model="gpt-4o")
     equality_checker = ChatCompletionSampler(model="gpt-4-turbo-preview")
     # ^^^ used for fuzzy matching, just for math
 
@@ -68,25 +70,32 @@ def main():
             case "mmlu":
                 return MMLUEval(num_examples=1 if debug else 2500)
             case "math":
+                num_examples = None if n_repeats != 1 else (5 if debug else 2500)
                 return MathEval(
-                    equality_checker=equality_checker, num_examples=5 if debug else 2500
+                    equality_checker=equality_checker, 
+                    num_examples=num_examples
                 )
             case "gpqa":
-                return GPQAEval(n_repeats=1 if debug else 10, num_examples=5 if debug else None)
+                return GPQAEval(n_repeats=1 if debug else 1, num_examples=5 if debug else None)
             case "mgsm":
                 return MGSMEval(num_examples_per_lang=10 if debug else 250)
             case "drop":
                 return DropEval(num_examples=10 if debug else 2000, train_samples_per_prompt=3)
             case "humaneval":
                 return HumanEval(num_examples=10 if debug else None)
+            case "simpleqa":
+                return SimpleQAEval(
+                    grader_model = grading_sampler, 
+                    num_examples=10 if debug else 4326)
             case _:
                 raise Exception(f"Unrecoginized eval type: {eval_name}")
 
     evals = {
-        eval_name: get_evals(eval_name) for eval_name in ["mmlu", "math", "gpqa", "mgsm", "drop"]
+        eval_name: get_evals(eval_name) for eval_name in ["simpleqa"]
     }
     print(evals)
     debug_suffix = "_DEBUG" if debug else ""
+    print(debug_suffix)
     mergekey2resultpath = {}
     for sampler_name, sampler in samplers.items():
         for eval_name, eval_obj in evals.items():
