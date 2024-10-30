@@ -76,7 +76,7 @@ def main():
                     num_examples=num_examples
                 )
             case "gpqa":
-                return GPQAEval(n_repeats=1 if debug else 1, num_examples=5 if debug else None)
+                return GPQAEval(n_repeats=10 if debug else 1, num_examples=5 if debug else None)
             case "mgsm":
                 return MGSMEval(num_examples_per_lang=10 if debug else 250)
             case "drop":
