@@ -97,12 +97,6 @@ CHOICE_LETTERS = ["A", "B", "C"]
 CHOICE_STRINGS = ["CORRECT", "INCORRECT", "NOT_ATTEMPTED"]
 CHOICE_LETTER_TO_STRING = dict(zip(CHOICE_LETTERS, CHOICE_STRINGS))
 
-CHOICE_TO_SCORE = {
-    "CORRECT": 1,
-    "INCORRECT": -5,
-    "NOT_ATTEMPTED": 0,
-} 
-
 class SimpleQAEval(Eval):
     def __init__(self, grader_model: SamplerBase, num_examples: int | None = None, n_repeats: int = 1):
         df = pandas.read_csv(
@@ -146,9 +140,7 @@ class SimpleQAEval(Eval):
                 is_incorrect = grade_letter == "B"
                 is_not_attempted = grade_letter == "C"
                 
-                # Map grading choice to descriptive string
-                choice_str = CHOICE_LETTER_TO_STRING[grade_letter]
-                score = CHOICE_TO_SCORE[choice_str] > 0
+                score = is_correct
 
                 # Create HTML for each sample result
                 html = common.jinja_env.from_string(common.HTML_JINJA).render(
