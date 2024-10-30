@@ -9,7 +9,7 @@ import json
 import random
 import re
 import string
-from typing import Any, Dict, List, Optional, Set, Tuple, Union
+from typing import Any, Dict, List, Set, Tuple, Union
 
 import blobfile as bf
 import numpy as np

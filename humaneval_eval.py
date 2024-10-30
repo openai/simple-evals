@@ -4,19 +4,11 @@ Mark Chen and Jerry Tworek and Heewoo Jun and Qiming Yuan and Henrique Ponde de 
 https://arxiv.org/abs/2107.03374 https://github.com/openai/human-eval/ 
 """
 
-import json
-import logging
-import multiprocessing
 import random
 import re
-from collections import Counter, defaultdict
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from io import BytesIO
-from typing import Any, Tuple
 
-import blobfile as bf
-import tqdm
-from human_eval.data import HUMAN_EVAL, read_problems
+from human_eval.data import read_problems
 from human_eval.evaluation import estimate_pass_at_k
 from human_eval.execution import check_correctness  # , unsafe_execute
 
@@ -35,7 +27,6 @@ def evaluate_functional_correctness(
     Evaluates the functional correctness of generated samples, and writes
     results to f"{sample_file}_results.jsonl.gz"
     """
-    import copy
 
     # Check the generated samples against test suites.
     with ThreadPoolExecutor(max_workers=n_workers) as executor:

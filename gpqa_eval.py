@@ -12,7 +12,7 @@ import pandas
 
 from . import common
 from .common import ANSWER_PATTERN_MULTICHOICE, HTML_JINJA, format_multichoice_question
-from .types import Eval, EvalResult, MessageList, SamplerBase, SingleEvalResult
+from .types import Eval, EvalResult, SamplerBase, SingleEvalResult
 
 
 class GPQAEval(Eval):
