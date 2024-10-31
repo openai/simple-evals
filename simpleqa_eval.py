@@ -1,7 +1,7 @@
 """
 SimpleQA: Measuring short-form factuality in large language models 
-[authors]
-[link]
+Authors: Jason Wei, Nguyen Karina, Hyung Won Chung, Yunxin Joy Jiao, Spencer Papay, Amelia Glaese, John Schulman, William Fedus
+https://cdn.openai.com/papers/simpleqa.pdf
 """ 
 
 import random 
@@ -101,7 +101,7 @@ class SimpleQAEval(Eval):
     def __init__(self, grader_model: SamplerBase, num_examples: int | None = None, n_repeats: int = 1):
         df = pandas.read_csv(
             bf.BlobFile(
-                f"az://openaipublic/simple-evals/simple_qa_test_set.csv"
+                f"https://openaipublic.blob.core.windows.net/simple-evals/simple_qa_test_set.csv"
             )
         )
         examples = [row.to_dict() for _, row in df.iterrows()]
