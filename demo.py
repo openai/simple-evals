@@ -22,7 +22,6 @@ from .sampler.claude_sampler import ClaudeCompletionSampler, CLAUDE_SYSTEM_MESSA
 
 def main():
     debug = True
-    n_repeats = 16
     samplers = {
         # chatgpt models:
         "o1-preview": O1ChatCompletionSampler(
@@ -70,10 +69,8 @@ def main():
             case "mmlu":
                 return MMLUEval(num_examples=1 if debug else 2500)
             case "math":
-                num_examples = None if n_repeats != 1 else (5 if debug else 2500)
                 return MathEval(
-                    equality_checker=equality_checker, 
-                    num_examples=num_examples
+                    equality_checker=equality_checker, num_examples=5 if debug else 2500
                 )
             case "gpqa":
                 return GPQAEval(n_repeats=10 if debug else 1, num_examples=5 if debug else None)
