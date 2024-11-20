@@ -19,40 +19,51 @@ from .sampler.o1_chat_completion_sampler import O1ChatCompletionSampler
 
 from .sampler.claude_sampler import ClaudeCompletionSampler, CLAUDE_SYSTEM_MESSAGE_LMSYS
 
+debug = False
 
 def main():
-    debug = True
+
     samplers = {
         # chatgpt models:
-        "o1-preview": O1ChatCompletionSampler(
-            model="o1-preview",
-        ),
-        "o1-mini": O1ChatCompletionSampler(
-            model="o1-mini",
-        ),
-        "gpt-4-turbo-2024-04-09_assistant": ChatCompletionSampler(
-            model="gpt-4-turbo-2024-04-09",
-            system_message=OPENAI_SYSTEM_MESSAGE_API,
-        ),
-        "gpt-4-turbo-2024-04-09_chatgpt": ChatCompletionSampler(
-            model="gpt-4-turbo-2024-04-09",
-            system_message=OPENAI_SYSTEM_MESSAGE_CHATGPT,
-        ),
-        "gpt-4o_assistant": ChatCompletionSampler(
-            model="gpt-4o",
-            system_message=OPENAI_SYSTEM_MESSAGE_API,
-            max_tokens=2048,
-        ),
-        "gpt-4o_chatgpt": ChatCompletionSampler(
-            model="gpt-4o",
+        # "gpt-4o-2024-11-20_api": ChatCompletionSampler(
+        #     model="gpt-4o-2024-11-20",
+        #     system_message=OPENAI_SYSTEM_MESSAGE_API,
+        #     max_tokens=2048,
+        # ),
+        "gpt-4o-2024-11-20_chatgpt": ChatCompletionSampler(
+            model="gpt-4o-2024-11-20",
             system_message=OPENAI_SYSTEM_MESSAGE_CHATGPT,
             max_tokens=2048,
         ),
-        "gpt-4o-mini-2024-07-18": ChatCompletionSampler(
-            model="gpt-4o-mini-2024-07-18",
-            system_message=OPENAI_SYSTEM_MESSAGE_API,
-            max_tokens=2048,
-        ),
+        # "o1-preview": O1ChatCompletionSampler(
+        #     model="o1-preview",
+        # ),
+        # "o1-mini": O1ChatCompletionSampler(
+        #     model="o1-mini",
+        # ),
+        # "gpt-4-turbo-2024-04-09_assistant": ChatCompletionSampler(
+        #     model="gpt-4-turbo-2024-04-09",
+        #     system_message=OPENAI_SYSTEM_MESSAGE_API,
+        # ),
+        # "gpt-4-turbo-2024-04-09_chatgpt": ChatCompletionSampler(
+        #     model="gpt-4-turbo-2024-04-09",
+        #     system_message=OPENAI_SYSTEM_MESSAGE_CHATGPT,
+        # ),
+        # "gpt-4o_assistant": ChatCompletionSampler(
+        #     model="gpt-4o",
+        #     system_message=OPENAI_SYSTEM_MESSAGE_API,
+        #     max_tokens=2048,
+        # ),
+        # "gpt-4o_chatgpt": ChatCompletionSampler(
+        #     model="gpt-4o",
+        #     system_message=OPENAI_SYSTEM_MESSAGE_CHATGPT,
+        #     max_tokens=2048,
+        # ),
+        # "gpt-4o-mini-2024-07-18": ChatCompletionSampler(
+        #     model="gpt-4o-mini-2024-07-18",
+        #     system_message=OPENAI_SYSTEM_MESSAGE_API,
+        #     max_tokens=2048,
+        # ),
         # claude models:
         # "claude-3-opus-20240229_empty": ClaudeCompletionSampler(
         #     model="claude-3-opus-20240229", system_message=None,
@@ -67,23 +78,25 @@ def main():
         # Set num_examples = None to reproduce full evals
         match eval_name:
             case "mmlu":
-                return MMLUEval(num_examples=1 if debug else 2500)
+                return MMLUEval(num_examples=1 if debug else None)
             case "math":
                 return MathEval(
-                    equality_checker=equality_checker, num_examples=5 if debug else 2500
+                    equality_checker=equality_checker,
+                    num_examples=5 if debug else None,
+                    n_repeats=1 if debug else 10
                 )
             case "gpqa":
-                return GPQAEval(n_repeats=10 if debug else 1, num_examples=5 if debug else None)
+                return GPQAEval(n_repeats=1 if debug else 10, num_examples=5 if debug else None)
             case "mgsm":
                 return MGSMEval(num_examples_per_lang=10 if debug else 250)
             case "drop":
-                return DropEval(num_examples=10 if debug else 2000, train_samples_per_prompt=3)
+                return DropEval(num_examples=10 if debug else None, train_samples_per_prompt=3)
             case "humaneval":
                 return HumanEval(num_examples=10 if debug else None)
             case "simpleqa":
                 return SimpleQAEval(
                     grader_model = grading_sampler, 
-                    num_examples=10 if debug else 4326)
+                    num_examples=10 if debug else None)
             case _:
                 raise Exception(f"Unrecoginized eval type: {eval_name}")
 
