@@ -1,7 +1,6 @@
 import json
-import time
 import argparse
-import pandas as pd  
+import pandas as pd
 from . import common
 from .drop_eval import DropEval
 from .gpqa_eval import GPQAEval
@@ -9,7 +8,7 @@ from .humaneval_eval import HumanEval
 from .math_eval import MathEval
 from .mgsm_eval import MGSMEval
 from .mmlu_eval import MMLUEval
-from .simpleqa_eval import SimpleQAEval 
+from .simpleqa_eval import SimpleQAEval
 from .sampler.chat_completion_sampler import (
     OPENAI_SYSTEM_MESSAGE_API,
     OPENAI_SYSTEM_MESSAGE_CHATGPT,
@@ -18,13 +17,20 @@ from .sampler.chat_completion_sampler import (
 from .sampler.o1_chat_completion_sampler import O1ChatCompletionSampler
 from .sampler.claude_sampler import ClaudeCompletionSampler, CLAUDE_SYSTEM_MESSAGE_LMSYS
 
+
 def main():
-    parser = argparse.ArgumentParser(description="Run sampling and evaluations using different samplers and evaluations.")
-    parser.add_argument('--list-models', action='store_true', help='List available models')
-    parser.add_argument('--model', type=str, help='Select a model by name')
-    parser.add_argument('--debug', action='store_true', help='Run in debug mode')
-    parser.add_argument('--examples', type=int, help='Number of examples to use (overrides default)')
-    
+    parser = argparse.ArgumentParser(
+        description="Run sampling and evaluations using different samplers and evaluations."
+    )
+    parser.add_argument(
+        "--list-models", action="store_true", help="List available models"
+    )
+    parser.add_argument("--model", type=str, help="Select a model by name")
+    parser.add_argument("--debug", action="store_true", help="Run in debug mode")
+    parser.add_argument(
+        "--examples", type=int, help="Number of examples to use (overrides default)"
+    )
+
     args = parser.parse_args()
 
     models = {
@@ -68,9 +74,10 @@ def main():
             system_message=OPENAI_SYSTEM_MESSAGE_API,
             max_tokens=2048,
         ),
-         # claude models:
+        # claude models:
         "claude-3-opus-20240229_empty": ClaudeCompletionSampler(
-            model="claude-3-opus-20240229", system_message=CLAUDE_SYSTEM_MESSAGE_LMSYS,
+            model="claude-3-opus-20240229",
+            system_message=CLAUDE_SYSTEM_MESSAGE_LMSYS,
         ),
     }
 
@@ -91,7 +98,9 @@ def main():
     # ^^^ used for fuzzy matching, just for math
 
     def get_evals(eval_name, debug_mode):
-        num_examples = args.examples if args.examples is not None else (5 if debug_mode else None)
+        num_examples = (
+            args.examples if args.examples is not None else (5 if debug_mode else None)
+        )
         # Set num_examples = None to reproduce full evals
         match eval_name:
             case "mmlu":
@@ -100,25 +109,32 @@ def main():
                 return MathEval(
                     equality_checker=equality_checker,
                     num_examples=num_examples,
-                    n_repeats=1 if debug_mode else 10
+                    n_repeats=1 if debug_mode else 10,
                 )
             case "gpqa":
-                return GPQAEval(n_repeats=1 if debug_mode else 10, num_examples=num_examples)
+                return GPQAEval(
+                    n_repeats=1 if debug_mode else 10, num_examples=num_examples
+                )
             case "mgsm":
                 return MGSMEval(num_examples_per_lang=10 if debug_mode else 250)
             case "drop":
-                return DropEval(num_examples=10 if debug_mode else num_examples, train_samples_per_prompt=3)
+                return DropEval(
+                    num_examples=10 if debug_mode else num_examples,
+                    train_samples_per_prompt=3,
+                )
             case "humaneval":
                 return HumanEval(num_examples=10 if debug_mode else num_examples)
             case "simpleqa":
                 return SimpleQAEval(
-                    grader_model=grading_sampler, 
-                    num_examples=10 if debug_mode else num_examples)
+                    grader_model=grading_sampler,
+                    num_examples=10 if debug_mode else num_examples,
+                )
             case _:
                 raise Exception(f"Unrecognized eval type: {eval_name}")
 
     evals = {
-        eval_name: get_evals(eval_name, args.debug) for eval_name in ["simpleqa", "mmlu", "math", "gpqa", "mgsm", "drop"]
+        eval_name: get_evals(eval_name, args.debug)
+        for eval_name in ["simpleqa", "mmlu", "math", "gpqa", "mgsm", "drop"]
     }
     print(evals)
     debug_suffix = "_DEBUG" if args.debug else ""
