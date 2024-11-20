@@ -85,9 +85,15 @@ For the [Anthropic API](https://docs.anthropic.com/claude/docs/quickstart-guide)
 pip install anthropic
 ```
 
-## Demo
+## Running the evals
 ```bash
-python -m simple-evals.demo
+python -m simple-evals.simple_evals --list-models
+```
+This will list all the models that you can evaluate.
+
+To run the evaluations, you can use the following command:
+```bash
+python -m simple-evals.simple_evals --sampler <sampler_name> --examples <num_examples>
 ```
 This will launch evaluations through the OpenAI API.
 
