@@ -35,7 +35,7 @@ def main():
 
     models = {
         # chatgpt models:
-        "gpt-4o-2024-11-20_api": ChatCompletionSampler(
+        "gpt-4o-2024-11-20_assistant": ChatCompletionSampler(
             model="gpt-4o-2024-11-20",
             system_message=OPENAI_SYSTEM_MESSAGE_API,
             max_tokens=2048,
