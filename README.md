@@ -11,6 +11,7 @@ We are open sourcing it so we can be transparent about the accuracy numbers we'r
 | o1-mini                      | n/a           |  85.2  |  60.0  |  90.0  | **`92.4`** |  89.9  |  83.9                      | 7.6        |  
 | o1 (work in progress)        | n/a           | **`92.3`** | **`77.3`** | **`94.8`** |   n/a    |   n/a  |   n/a            |   n/a 
 | **GPT-4o**                   |               |        |        |        |           |        |                        |
+| gpt-4o-2024-11-20            | assistant     |  85.7  |  46.0  |  68.5  |   90.2    |  90.3  |  81.5                       | 38.8       |  
 | gpt-4o-2024-08-06            | assistant[^2] |  88.7  |  53.1  |  75.9  |   90.2    |  90.0  |  79.8                       | 40.1       |  
 | gpt-4o-2024-05-13            | assistant     |  87.2  |  49.9  |  76.6  |   91.0    |  89.9  |  83.7                       | 39.0       |
 | gpt-4o-mini-2024-07-18       | assistant     |  82.0  |  40.2  |  70.2  |   87.2    |  87.0  |  79.7                       | 9.5        | 
@@ -85,9 +86,15 @@ For the [Anthropic API](https://docs.anthropic.com/claude/docs/quickstart-guide)
 pip install anthropic
 ```
 
-## Demo
+## Running the evals
 ```bash
-python -m simple-evals.demo
+python -m simple-evals.simple_evals --list-models
+```
+This will list all the models that you can evaluate.
+
+To run the evaluations, you can use the following command:
+```bash
+python -m simple-evals.simple_evals --model <model_name> --examples <num_examples>
 ```
 This will launch evaluations through the OpenAI API.
 
