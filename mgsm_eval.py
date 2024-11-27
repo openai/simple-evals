@@ -9,10 +9,11 @@ import re
 from typing import Optional
 
 import blobfile as bf
+import requests
 
-from . import common
-from .mmlu_eval import HTML_JINJA
-from .types import Eval, EvalResult, SamplerBase, SingleEvalResult
+import common
+from mmlu_eval import HTML_JINJA
+from custom_types import Eval, EvalResult, SamplerBase, SingleEvalResult
 
 ALL_LANGUAGES = ["bn", "de", "en", "es", "fr", "ja", "ru", "sw", "te", "th", "zh"]
 LATIN_LANGUAGES = ["de", "en", "es", "fr", "sw"]
@@ -109,13 +110,14 @@ def score_mgsm(target: str, prediction: str) -> bool:
 def get_lang_examples(lang: str) -> list[dict[str, str]]:
     fpath = LANG_TO_FPATH[lang]
     examples = []
-    with bf.BlobFile(fpath, "r") as f:
-        for line in f:
-            inputs, targets = line.strip().split("\t")
-            if "." in targets:
-                raise ValueError(f"targets {targets} contains a decimal point.")
-            # targets = int(targets.replace(",", ""))
-            examples.append({"inputs": inputs, "targets": targets, "lang": lang})
+    response = requests.get(fpath)
+    response.raise_for_status()
+    lines = response.text.strip().split("\n")
+    for line in lines:
+        inputs, targets = line.strip().split("\t")
+        if "." in targets:
+            raise ValueError(f"targets {targets} contains a decimal point.")
+        examples.append({"inputs": inputs, "targets": targets, "lang": lang})
     return examples
 
 

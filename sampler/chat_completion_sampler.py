@@ -4,8 +4,10 @@ from typing import Any
 
 import openai
 from openai import OpenAI
+from dotenv import load_dotenv
 
-from ..types import MessageList, SamplerBase
+load_dotenv()
+from custom_types import MessageList, SamplerBase
 
 OPENAI_SYSTEM_MESSAGE_API = "You are a helpful assistant."
 OPENAI_SYSTEM_MESSAGE_CHATGPT = (

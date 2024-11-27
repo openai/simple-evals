@@ -6,13 +6,14 @@ https://arxiv.org/abs/2311.12022
 
 import random
 import re
-
+import requests
+import io
 import blobfile as bf
 import pandas
 
-from . import common
-from .common import ANSWER_PATTERN_MULTICHOICE, HTML_JINJA, format_multichoice_question
-from .types import Eval, EvalResult, MessageList, SamplerBase, SingleEvalResult
+import common
+from common import ANSWER_PATTERN_MULTICHOICE, HTML_JINJA, format_multichoice_question
+from custom_types import Eval, EvalResult, MessageList, SamplerBase, SingleEvalResult
 
 
 class GPQAEval(Eval):
@@ -22,13 +23,12 @@ class GPQAEval(Eval):
         variant: str = "diamond",
         num_examples: int | None = None,  # restrict to a subset of the data for debugging
     ):
-        df = pandas.read_csv(
-            bf.BlobFile(f"https://openaipublic.blob.core.windows.net/simple-evals/gpqa_{variant}.csv")
-        )
+        with requests.get(f"https://openaipublic.blob.core.windows.net/simple-evals/gpqa_{variant}.csv") as response:
+            blob_file = io.BytesIO(response.content)
+            df = pandas.read_csv(blob_file)
         examples = [row.to_dict() for _, row in df.iterrows()]
         rng = random.Random(0)
         if num_examples:
-            assert n_repeats == 1, "n_repeats only supported for num_examples = None"
             examples = rng.sample(examples, num_examples)
         examples = examples * n_repeats
         examples = [example | {"permutation": rng.sample(range(4), 4)} for example in examples]

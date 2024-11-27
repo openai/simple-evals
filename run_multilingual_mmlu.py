@@ -2,7 +2,7 @@ import json
 
 import pandas as pd
 
-from . import common
+import common
 from .mmlu_eval import MMLUEval
 from .sampler.chat_completion_sampler import (
     OPENAI_SYSTEM_MESSAGE_API,

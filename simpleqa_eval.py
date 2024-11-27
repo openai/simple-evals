@@ -8,8 +8,8 @@ import random
 import re
 import blobfile as bf
 import pandas
-from . import common
-from .types import Eval, EvalResult, SamplerBase, SingleEvalResult
+import common
+from custom_types import Eval, EvalResult, SamplerBase, SingleEvalResult
 
 GRADER_TEMPLATE = """
 Your job is to look at a question, a gold target, and a predicted answer, and then assign a grade of either ["CORRECT", "INCORRECT", "NOT_ATTEMPTED"].
@@ -101,7 +101,7 @@ class SimpleQAEval(Eval):
     def __init__(self, grader_model: SamplerBase, num_examples: int | None = None, n_repeats: int = 1):
         df = pandas.read_csv(
             bf.BlobFile(
-                f"https://openaipublic.blob.core.windows.net/simple-evals/simple_qa_test_set.csv"
+                "simple_qa_test_set.csv"
             )
         )
         examples = [row.to_dict() for _, row in df.iterrows()]

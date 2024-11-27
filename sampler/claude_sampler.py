@@ -2,8 +2,10 @@ import time
 
 import anthropic
 
-from ..types import MessageList, SamplerBase
+from custom_types import MessageList, SamplerBase
+from dotenv import load_dotenv
 
+load_dotenv()
 CLAUDE_SYSTEM_MESSAGE_LMSYS = (
     "The assistant is Claude, created by Anthropic. The current date is "
     "{currentDateTime}. Claude's knowledge base was last updated in "

@@ -4,8 +4,10 @@ from typing import Any
 import openai
 from openai import OpenAI
 
-from ..types import MessageList, SamplerBase
+from custom_types import MessageList, SamplerBase
+from dotenv import load_dotenv
 
+load_dotenv()
 class O1ChatCompletionSampler(SamplerBase):
     """
     Sample from OpenAI's chat completion API for o1 models

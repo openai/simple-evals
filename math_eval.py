@@ -7,13 +7,13 @@ https://arxiv.org/abs/2103.03874
 import random
 import re
 from typing import Literal
-
+import requests
 import blobfile as bf
 import pandas
-
-from . import common
-from .common import ANSWER_PATTERN, HTML_JINJA, check_equality
-from .types import Eval, EvalResult, SamplerBase, SingleEvalResult
+import io
+import common
+from common import ANSWER_PATTERN, HTML_JINJA, check_equality
+from custom_types import Eval, EvalResult, SamplerBase, SingleEvalResult
 
 QUERY_TEMPLATE = """
 Solve the following math problem step by step. The last line of your response should be of the form Answer: $ANSWER (without quotes) where $ANSWER is the answer to the problem.
@@ -32,12 +32,13 @@ class MathEval(Eval):
         n_repeats: int = 16,
         split: Literal["math_test", "math_500_test"] = "math_test",
     ):
-        df = pandas.read_csv(
-            bf.BlobFile(f"https://openaipublic.blob.core.windows.net/simple-evals/{split}.csv")
-        )
+
+        with requests.get(f"https://openaipublic.blob.core.windows.net/simple-evals/{split}.csv") as response:
+            blob_file = io.BytesIO(response.content)
+            df = pandas.read_csv(blob_file)
+
         examples = [row.to_dict() for _, row in df.iterrows()]
         if num_examples:
-            assert n_repeats == 1, "n_repeats only supported for num_examples = None"
             rng = random.Random(0)
             examples = rng.sample(examples, num_examples)
         self.examples = examples * n_repeats
