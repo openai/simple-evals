@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <style>
+            .message {
+                padding: 8px 16px;
+                margin-bottom: 8px;
+                border-radius: 4px;
+            }
+            .message.user {
+                background-color: #B2DFDB;
+                color: #00695C;
+            }
+            .message.assistant {
+                background-color: #B39DDB;
+                color: #4527A0;
+            }
+            .message.system {
+                background-color: #EEEEEE;
+                color: #212121;
+            }
+            .role {
+                font-weight: bold;
+                margin-bottom: 4px;
+            }
+            .variant {
+                color: #795548;
+            }
+            table, th, td {
+                border: 1px solid black;
+            }
+            pre {
+                white-space: pre-wrap;
+            }
+        </style>
+    </head>
+    <body>
+    
+    <h1>Metrics</h1>
+    <table>
+    <tr>
+        <th>Metric</th>
+        <th>Value</th>
+    </tr>
+    <tr>
+        <td><b>Score</b></td>
+        <td>0.727</td>
+    </tr>
+    
+    <tr>
+        <td>bn</td>
+        <td>0.0</td>
+    </tr>
+    
+    <tr>
+        <td>bn:std</td>
+        <td>0.0</td>
+    </tr>
+    
+    <tr>
+        <td>group_non_latin</td>
+        <td>0.5</td>
+    </tr>
+    
+    <tr>
+        <td>group_non_latin:std</td>
+        <td>0.5</td>
+    </tr>
+    
+    <tr>
+        <td>score:std</td>
+        <td>0.4453617714151233</td>
+    </tr>
+    
+    <tr>
+        <td>de</td>
+        <td>1.0</td>
+    </tr>
+    
+    <tr>
+        <td>de:std</td>
+        <td>0.0</td>
+    </tr>
+    
+    <tr>
+        <td>group_latin</td>
+        <td>1.0</td>
+    </tr>
+    
+    <tr>
+        <td>group_latin:std</td>
+        <td>0.0</td>
+    </tr>
+    
+    <tr>
+        <td>en</td>
+        <td>1.0</td>
+    </tr>
+    
+    <tr>
+        <td>en:std</td>
+        <td>0.0</td>
+    </tr>
+    
+    <tr>
+        <td>es</td>
+        <td>1.0</td>
+    </tr>
+    
+    <tr>
+        <td>es:std</td>
+        <td>0.0</td>
+    </tr>
+    
+    <tr>
+        <td>fr</td>
+        <td>1.0</td>
+    </tr>
+    
+    <tr>
+        <td>fr:std</td>
+        <td>0.0</td>
+    </tr>
+    
+    <tr>
+        <td>ja</td>
+        <td>1.0</td>
+    </tr>
+    
+    <tr>
+        <td>ja:std</td>
+        <td>0.0</td>
+    </tr>
+    
+    <tr>
+        <td>ru</td>
+        <td>1.0</td>
+    </tr>
+    
+    <tr>
+        <td>ru:std</td>
+        <td>0.0</td>
+    </tr>
+    
+    <tr>
+        <td>sw</td>
+        <td>1.0</td>
+    </tr>
+    
+    <tr>
+        <td>sw:std</td>
+        <td>0.0</td>
+    </tr>
+    
+    <tr>
+        <td>te</td>
+        <td>0.0</td>
+    </tr>
+    
+    <tr>
+        <td>te:std</td>
+        <td>0.0</td>
+    </tr>
+    
+    <tr>
+        <td>th</td>
+        <td>0.0</td>
+    </tr>
+    
+    <tr>
+        <td>th:std</td>
+        <td>0.0</td>
+    </tr>
+    
+    <tr>
+        <td>zh</td>
+        <td>1.0</td>
+    </tr>
+    
+    <tr>
+        <td>zh:std</td>
+        <td>0.0</td>
+    </tr>
+    
+    </table>
+    
+    <h1>Examples</h1>
+    
+    
+<h3>Prompt conversation</h3>
+
+
+<div class="message user">
+    <div class="role">
+    user 
+    
+    </div>
+    <div class="content">
+    <pre>এই গণিতের সমস্যাটি সমাধান করুন। চূড়ান্ত উত্তর দেওয়ার আগে যুক্তিসম্পন্ন পদক্ষেপ প্রদান করুন। চূড়ান্ত উত্তরটি একক সংখ্যা হিসাবে &#34;উত্তর:&#34; এর পরে শেষ লাইনে দিন। &#34;উত্তর:&#34; এর পরে অন্য কিছু যুক্ত করবেন না।.
+
+à¦à§à¦¨à§à¦à§à¦° à¦¹à¦¾à¦à¦¸à¦à§à¦²à¦¿ à¦ªà§à¦°à¦¤à¦¿à¦¦à¦¿à¦¨ 16à¦à¦¿ à¦à¦°à§ à¦¡à¦¿à¦® à¦ªà¦¾à§à§à¥¤ à¦¤à¦¿à¦¨à¦¿ à¦ªà§à¦°à¦¤à¦¿à¦¦à¦¿à¦¨ à¦ªà§à¦°à¦¾à¦¤à¦°à¦¾à¦¶à§ à¦¤à¦¿à¦¨à¦à¦¿ à¦à¦°à§ à¦¡à¦¿à¦® à¦à¦¾à¦¨ à¦à¦¬à¦ à¦¬à¦¨à§à¦§à§à¦¦à§à¦° à¦à¦¨à§à¦¯ à¦ªà§à¦°à¦¤à¦¿à¦¦à¦¿à¦¨ à¦à¦¾à¦°à¦à¦¿ à¦¡à¦¿à¦® à¦¦à¦¿à§à§ à¦®à¦¾à¦«à¦¿à¦¨ à¦¤à§à¦°à¦¿ à¦à¦°à§à¦¨à¥¤ à¦à¦¬à¦¶à¦¿à¦·à§à¦ à¦¹à¦¾à¦à¦¸à§à¦° à¦¡à¦¿à¦®à¦à§à¦²à¦¿ à¦¤à¦¿à¦¨à¦¿ à¦ªà§à¦°à¦¤à¦¿à¦¦à¦¿à¦¨ à¦à§à¦·à¦à¦¦à§à¦° à¦¬à¦¾à¦à¦¾à¦°à§ à¦ªà§à¦°à¦¤à¦¿ à¦¡à¦¿à¦® $2 à¦¦à¦°à§ à¦¬à¦¿à¦à§à¦°à§ à¦à¦°à§à¦¨à¥¤ à¦¤à¦¿à¦¨à¦¿ à¦à§à¦·à¦à¦¦à§à¦° à¦¬à¦¾à¦à¦¾à¦°à§ à¦ªà§à¦°à¦¤à¦¿à¦¦à¦¿à¦¨ à¦à¦¤ à¦¡à¦²à¦¾à¦° à¦à¦ªà¦¾à¦°à§à¦à¦¨ à¦à¦°à§à¦¨?</pre>
+    </div>
+</div>
+
+<h3>Sampled message</h3>
+
+<div class="message assistant">
+    <div class="role">
+    assistant 
+    
+    </div>
+    <div class="content">
+    <pre>ধাপে ধাপে সমস্যাটি সমাধান করা যাক:
+
+1. প্রথমে, জেনেটের হাঙ্কসগুলি প্রতিদিন 16টি করে ডিম পাড়ে।
+2. তিনটি প্রতিদিনের জন্য, মোট ডিমের সংখ্যা হবে:
+   \[
+   16 \times 3 = 48 \text{ ডিম}
+   \]
+
+3. বনের মধ্যে প্রতিদিন চারটি ডিম খায় মাফিন। তিন দিনের জন্য, মাফিন খাবে:
+   \[
+   4 \times 3 = 12 \text{ ডিম}
+   \]
+
+4. অবশিষ্ট হাঙ্কসের ডিমগুলি প্রতিদিন $2$ ডিম বিক্রয় করে। তিন দিনের জন্য, বিক্রয় হবে:
+   \[
+   2 \times 3 = 6 \text{ ডিম}
+   \]
+
+5. অবশিষ্ট ডিমের সংখ্যা হবে:
+   \[
+   48 - 12 - 6 = 30 \text{ ডিম}
+   \]
+
+উত্তর: 30</pre>
+    </div>
+</div>
+<h3>Results</h3>
+<p>Correct Answer: 18</p>
+<p>Extracted Answer: 30</p>
+<p>Score: False</p>
+    <hr>
+    
+    
+<h3>Prompt conversation</h3>
+
+
+<div class="message user">
+    <div class="role">
+    user 
+    
+    </div>
+    <div class="content">
+    <pre>Löse dieses Mathematikproblem. Gib die Schritte zur Begründung an, bevor du die endgültige Antwort in der letzten Zeile alleine im Format &#34;Antwort:&#34; gibst. Füge nichts anderes als die ganzzahlige Antwort nach &#34;Antwort:&#34; hinzu.
+
+Janets Enten legen 16 Eier pro Tag. Sie isst drei jeden Morgen zum FrÃ¼hstÃ¼ck und backt mit vier jeden Tag Muffins fÃ¼r ihre Freunde. Den Rest verkauft sie tÃ¤glich auf dem Bauernmarkt fÃ¼r 2 US-Dollar pro frischem Entenei. Wie viel Dollar nimmt sie tÃ¤glich auf dem Bauernmarkt ein?</pre>
+    </div>
+</div>
+
+<h3>Sampled message</h3>
+
+<div class="message assistant">
+    <div class="role">
+    assistant 
+    
+    </div>
+    <div class="content">
+    <pre>Um das Problem zu lösen, gehen wir Schritt für Schritt vor:
+
+1. **Gesamtanzahl der Eier pro Tag:**
+   - Janet&#39;s Enten legen 16 Eier pro Tag.
+
+2. **Eierverbrauch pro Tag:**
+   - Janet isst 3 Eier zum Frühstück.
+   - Janet verwendet 4 Eier zum Backen von Muffins.
+   - Insgesamt verbraucht Janet 3 + 4 = 7 Eier pro Tag.
+
+3. **Verbleibende Eier zum Verkauf:**
+   - Die Anzahl der Eier, die Janet täglich verkauft, ist 16 - 7 = 9 Eier.
+
+4. **Einnahmen pro Ei:**
+   - Janet verkauft jedes Ei für 2 US-Dollar.
+
+5. **Gesamteinnahmen pro Tag:**
+   - Die täglichen Einnahmen betragen 9 Eier * 2 US-Dollar/Ei = 18 US-Dollar.
+
+Antwort: 18</pre>
+    </div>
+</div>
+<h3>Results</h3>
+<p>Correct Answer: 18</p>
+<p>Extracted Answer: 18</p>
+<p>Score: True</p>
+    <hr>
+    
+    
+<h3>Prompt conversation</h3>
+
+
+<div class="message user">
+    <div class="role">
+    user 
+    
+    </div>
+    <div class="content">
+    <pre>Solve this math problem. Give the reasoning steps before giving the final answer on the last line by itself in the format of &#34;Answer:&#34;. Do not add anything other than the integer answer after &#34;Answer:&#34;.
+
+Janetâs ducks lay 16 eggs per day. She eats three for breakfast every morning and bakes muffins for her friends every day with four. She sells the remainder at the farmers&#39; market daily for $2 per fresh duck egg. How much in dollars does she make every day at the farmers&#39; market?</pre>
+    </div>
+</div>
+
+<h3>Sampled message</h3>
+
+<div class="message assistant">
+    <div class="role">
+    assistant 
+    
+    </div>
+    <div class="content">
+    <pre>To solve this problem, let&#39;s break it down step by step:
+
+1. **Total eggs laid per day:**
+   - Janet’s ducks lay 16 eggs per day.
+
+2. **Eggs consumed by Janet:**
+   - Janet eats 3 eggs for breakfast.
+   - Janet uses 4 eggs for baking muffins.
+   - Total eggs consumed by Janet daily = 3 + 4 = 7 eggs.
+
+3. **Eggs available for sale:**
+   - Total eggs laid per day = 16 eggs.
+   - Eggs consumed by Janet = 7 eggs.
+   - Eggs available for sale = 16 - 7 = 9 eggs.
+
+4. **Income from selling eggs:**
+   - Janet sells the remaining eggs at the farmers&#39; market for $2 per egg.
+   - Income per egg = $2.
+   - Total income from selling 9 eggs = 9 * $2 = $18.
+
+Answer: 18</pre>
+    </div>
+</div>
+<h3>Results</h3>
+<p>Correct Answer: 18</p>
+<p>Extracted Answer: 18</p>
+<p>Score: True</p>
+    <hr>
+    
+    
+<h3>Prompt conversation</h3>
+
+
+<div class="message user">
+    <div class="role">
+    user 
+    
+    </div>
+    <div class="content">
+    <pre>Resuelve este problema matemático. Proporciona los pasos de razonamiento antes de dar la respuesta final en la última línea por sí misma en el formato de &#34;Respuesta:&#34;. No añadas nada más que la respuesta entera después de &#34;Respuesta:&#34;.
+
+Los patos de Janet ponen 16 huevos por dÃ­a. Ella come tres en el desayuno todas las maÃ±anas y usa cuatro para hornear magdalenas para sus amigos todos los dÃ­as. Vende lo que sobra en el mercado de productores diariamente a $2 el huevo fresco de pato. Â¿CuÃ¡nto gana en dÃ³lares todos los dÃ­as en el mercado de productores?</pre>
+    </div>
+</div>
+
+<h3>Sampled message</h3>
+
+<div class="message assistant">
+    <div class="role">
+    assistant 
+    
+    </div>
+    <div class="content">
+    <pre>Para resolver este problema, sigamos los pasos detalladamente:
+
+1. **Calcular la cantidad total de huevos que ponen los patos de Janet diariamente:**
+   - Los patos ponen 16 huevos por día.
+
+2. **Calcular la cantidad de huevos que Janet consume diariamente:**
+   - Janet come 3 huevos en el desayuno.
+   - Janet usa 4 huevos para hornear magdalenas.
+   - Total de huevos consumidos por Janet diariamente: 3 + 4 = 7 huevos.
+
+3. **Calcular la cantidad de huevos que Janet tiene disponibles para vender:**
+   - Huevos puestos diariamente: 16
+   - Huevos consumidos diariamente: 7
+   - Huevos disponibles para vender: 16 - 7 = 9 huevos.
+
+4. **Calcular las ganancias diarias de Janet en el mercado de productores:**
+   - Precio por huevo: $2
+   - Huevos vendidos: 9
+   - Ganancias diarias: 9 huevos * $2/huevo = $18
+
+Respuesta: $18</pre>
+    </div>
+</div>
+<h3>Results</h3>
+<p>Correct Answer: 18</p>
+<p>Extracted Answer: 18</p>
+<p>Score: True</p>
+    <hr>
+    
+    
+<h3>Prompt conversation</h3>
+
+
+<div class="message user">
+    <div class="role">
+    user 
+    
+    </div>
+    <div class="content">
+    <pre>Résolvez ce problème de mathématiques. Donnez les étapes de raisonnement avant de fournir la réponse finale sur la dernière ligne elle-même dans le format de &#34;Réponse:&#34;. N&#39;ajoutez rien d&#39;autre que la réponse entière après &#34;Réponse:&#34;.
+
+Les canes de Janet pondent 16 Åufs par jour. Chaque matin, elle en mange trois au petit dÃ©jeuner et en utilise quatre autres pour prÃ©parer des muffins pour ses amis. Ce qui reste, elle le vend quotidiennement au marchÃ© fermier, au prix de 2 $ l&#39;Åuf de cane frais. Combien (en dollars) gagne-t-elle chaque jour au marchÃ© fermier ?</pre>
+    </div>
+</div>
+
+<h3>Sampled message</h3>
+
+<div class="message assistant">
+    <div class="role">
+    assistant 
+    
+    </div>
+    <div class="content">
+    <pre>Pour résoudre ce problème, suivons les étapes suivantes :
+
+1. **Calculer le nombre total d&#39;œufs pondus par jour :**
+   - Les canes de Janet pondent 16 œufs par jour.
+
+2. **Calculer le nombre d&#39;œufs utilisés par Janet chaque jour :**
+   - Janet mange 3 œufs au petit déjeuner.
+   - Janet utilise 4 œufs pour préparer des muffins.
+   - Total des œufs utilisés par Janet = 3 + 4 = 7 œufs.
+
+3. **Calculer le nombre d&#39;œufs restants pour la vente :**
+   - Œufs restants = Œufs pondus - Œufs utilisés
+   - Œufs restants = 16 - 7 = 9 œufs.
+
+4. **Calculer le revenu quotidien de la vente des œufs :**
+   - Prix de vente par œuf = 2 $
+   - Revenu quotidien = Nombre d&#39;œufs restants × Prix par œuf
+   - Revenu quotidien = 9 × 2 = 18 $
+
+Réponse: 18 $</pre>
+    </div>
+</div>
+<h3>Results</h3>
+<p>Correct Answer: 18</p>
+<p>Extracted Answer: 18</p>
+<p>Score: True</p>
+    <hr>
+    
+    
+<h3>Prompt conversation</h3>
+
+
+<div class="message user">
+    <div class="role">
+    user 
+    
+    </div>
+    <div class="content">
+    <pre>の数学の問題を解いてください。最終的な答えを出す前に、解答の推論過程を記述してください。そして最後の行には &#34;答え:&#34; の形式で答えを記述し、その後には整数の答え以外何も追加しないでください。
+
+ã¸ã£ãããã®ã¢ãã«ã¯1æ¥ã«16åã®åµãçã¿ã¾ããã¸ã£ãããã¯æ¯ææé£ã®ä¸ç°ã§3åãæ¶è²»ããæ¯æ¥4åä½¿ã£ã¦åéåãã«ããã£ã³ãç¼ãã¾ããæ®ããå¸å ´ã§1åããã2ãã«ã®ä¾¡æ ¼ã§å£²ãã¾ããå½¼å¥³ã¯æ¯æ¥å¸å ´ã§ãããæã«å¥ãã¦ãã¾ããï¼</pre>
+    </div>
+</div>
+
+<h3>Sampled message</h3>
+
+<div class="message assistant">
+    <div class="role">
+    assistant 
+    
+    </div>
+    <div class="content">
+    <pre>もちろん、以下の数学の問題を解いていきます。
+
+### 問題の整理
+- ジャネットのアヒルは1日に16個の卵を生みます。
+- ジャネットは毎朝の朝食で3個の卵を消費します。
+- 毎日4個の卵を使って友達向けにマフィンを焼きます。
+- 残りの卵を市場で1個あたり2ドルの価格で売ります。
+
+### 解答の推論過程
+1. **1日の卵の生産量**:
+   - アヒルは1日に16個の卵を生みます。
+
+2. **1日の卵の消費量**:
+   - 朝食で3個消費。
+   - マフィンで4個消費。
+   - 合計消費量 = 3個 + 4個 = 7個。
+
+3. **市場で売る卵の数**:
+   - 1日の生産量 - 1日の消費量 = 16個 - 7個 = 9個。
+
+4. **市場での収入**:
+   - 1個あたり2ドルで売るので、9個の卵を売ると収入は 9個 × 2ドル = 18ドル。
+
+### 最終的な答え
+ジャネットは毎日市場で18ドルを手に入れています。
+
+答え: 18</pre>
+    </div>
+</div>
+<h3>Results</h3>
+<p>Correct Answer: 18</p>
+<p>Extracted Answer: 18</p>
+<p>Score: True</p>
+    <hr>
+    
+    
+<h3>Prompt conversation</h3>
+
+
+<div class="message user">
+    <div class="role">
+    user 
+    
+    </div>
+    <div class="content">
+    <pre>Решите эту математическую задачу. Объясните шаги рассуждения перед тем, как дать окончательный ответ в последней строке сам по себе в формате &#34;Ответ:&#34;. Не добавляйте ничего, кроме целочисленного ответа после &#34;Ответ:&#34;.
+
+Ð£ÑÐºÐ¸ ÐÐ¶ÐµÐ½ÐµÑ Ð½ÐµÑÑÑ Ð¿Ð¾ 16 ÑÐ¸Ñ Ð² Ð´ÐµÐ½Ñ. ÐÐ½Ð° ÐµÑÑ ÑÑÐ¸ Ð½Ð° Ð·Ð°Ð²ÑÑÐ°Ðº ÐºÐ°Ð¶Ð´Ð¾Ðµ ÑÑÑÐ¾ Ð¸ Ð¿ÐµÑÐµÑ ÐºÐµÐºÑÑ Ð´Ð»Ñ ÑÐ²Ð¾Ð¸Ñ Ð´ÑÑÐ·ÐµÐ¹ ÐºÐ°Ð¶Ð´ÑÐ¹ Ð´ÐµÐ½Ñ, Ð¸ÑÐ¿Ð¾Ð»ÑÐ·ÑÑ ÑÐµÑÑÑÐµ. ÐÑÑÐ°ÑÐ¾Ðº Ð¾Ð½Ð° ÐºÐ°Ð¶Ð´ÑÐ¹ Ð´ÐµÐ½Ñ Ð¿ÑÐ¾Ð´Ð°ÐµÑ Ð½Ð° ÑÐµÑÐ¼ÐµÑÑÐºÐ¾Ð¼ ÑÑÐ½ÐºÐµ Ð¿Ð¾ 2 $ Ð·Ð° ÑÐ²ÐµÐ¶ÐµÐµ ÑÑÐ¸Ð½Ð¾Ðµ ÑÐ¹ÑÐ¾. Ð¡ÐºÐ¾Ð»ÑÐºÐ¾ Ð² Ð´Ð¾Ð»Ð»Ð°ÑÐ°Ñ Ð¾Ð½Ð° Ð·Ð°ÑÐ°Ð±Ð°ÑÑÐ²Ð°ÐµÑ Ð½Ð° ÑÐµÑÐ¼ÐµÑÑÐºÐ¾Ð¼ ÑÑÐ½ÐºÐµ ÐºÐ°Ð¶Ð´ÑÐ¹ Ð´ÐµÐ½Ñ?</pre>
+    </div>
+</div>
+
+<h3>Sampled message</h3>
+
+<div class="message assistant">
+    <div class="role">
+    assistant 
+    
+    </div>
+    <div class="content">
+    <pre>Для решения задачи следуем следующим шагам:
+
+1. Утки Дженет несут 16 яиц в день.
+2. Дженет ест 3 яйца на завтрак каждое утро.
+3. Дженет использует 4 яйца для выпечки кексов каждый день.
+
+Сначала найдем, сколько яиц остается у Дженет после завтрака и выпечки:
+\[ 16 - 3 - 4 = 9 \]
+
+Эти 9 яиц она продает на фермерском рынке по 2 доллара за яйцо. Теперь вычислим, сколько денег она зарабатывает:
+\[ 9 \times 2 = 18 \]
+
+Ответ: 18</pre>
+    </div>
+</div>
+<h3>Results</h3>
+<p>Correct Answer: 18</p>
+<p>Extracted Answer: 18</p>
+<p>Score: True</p>
+    <hr>
+    
+    
+<h3>Prompt conversation</h3>
+
+
+<div class="message user">
+    <div class="role">
+    user 
+    
+    </div>
+    <div class="content">
+    <pre>Suluhisha tatizo hili la hesabu. Toa hatua za mantiki kabla ya kutoa jibu la mwisho kwenye mstari wa mwisho peke yake katika muundo wa &#34;Jibu:&#34;. Usiongeze chochote kingine isipokuwa jibu la integer baada ya &#34;Jibu:&#34;.
+
+Bata wa Janet hutaga mayai 16 kila siku. Huwa anakula matatu wakati wa staftahi kila asubuhi na huokea marafiki zake mafini kila siku kwa mayai manne. Huwa anauza yaliyosalia katika soko la wakulima kila siku kwa $2 kwa kila yai la bata. Huwa anatengeneza pesa ngapi katika dola kila siku katika soko la wakulima?</pre>
+    </div>
+</div>
+
+<h3>Sampled message</h3>
+
+<div class="message assistant">
+    <div class="role">
+    assistant 
+    
+    </div>
+    <div class="content">
+    <pre>1. Idadi ya mayai yanayotagwa kila siku: 16
+2. Idadi ya mayai yanayoliwa wakati wa staftahi: 3
+3. Idadi ya mayai yanayotumika kuoka mafini: 4
+
+Hatua za mantiki:
+- Kwanza, hesabu mayai yanayobaki baada ya staftahi na kuoka mafini.
+  - Mayai yanayoliwa wakati wa staftahi: 3
+  - Mayai yanayotumika kuoka mafini: 4
+  - Jumla ya mayai yanayotumika: 3 + 4 = 7
+
+- Mayai yanayobaki baada ya matumizi hayo:
+  - Mayai yanayotagwa kila siku: 16
+  - Mayai yanayotumika: 7
+  - Mayai yanayobaki: 16 - 7 = 9
+
+- Kila yai linauzwa kwa $2:
+  - Mapato kwa kila yai: $2
+  - Mayai yanayouzwa: 9
+  - Jumla ya mapato: 9 * $2 = $18
+
+Jibu: 18</pre>
+    </div>
+</div>
+<h3>Results</h3>
+<p>Correct Answer: 18</p>
+<p>Extracted Answer: 18</p>
+<p>Score: True</p>
+    <hr>
+    
+    
+<h3>Prompt conversation</h3>
+
+
+<div class="message user">
+    <div class="role">
+    user 
+    
+    </div>
+    <div class="content">
+    <pre>ఈ గణిత సమస్యను పరిష్కరించండి. చివరి సమాధానాన్ని ఇవ్వదానికి ముందు తర్కాత్మక అదుగులను ఇవ్వండి. చివరి పంక్తిలో మాత్రమే &#39;సమాధానం:&#39; అనే ఆకారంలో చివరి సమాధానాద్ని ఇవ్వండి సమాధానం: తర్వాత పూర్ణాంక సమాధానానికి తప్పించి ఎదేనా చేర్చవద్దు.
+
+à°à°¨à±à°¤à± à°¬à°¾à°¤à±à°²à± à°ªà±à°°à°¤à°¿à°°à±à°à± 16 à°à±à°¡à±à°²à± à°ªà±à°¡à°¤à°¾à°¯à°¿. à°à°®à± à°ªà±à°°à°¤à°¿à°°à±à°à± à°à°¦à°¯à° à°à°²à±à°ªà°¾à°¹à°¾à°°à° à°à±à°°à°à± à°®à±à°¡à± à°à±à°¡à±à°²à± à°¤à°¿à°à°à±à°à°¦à°¿ à°®à°°à°¿à°¯à± à°ªà±à°°à°¤à°¿à°°à±à°à± à°¨à°¾à°²à±à°à°¿à°à°à°¿à°¤à± à°¤à°¨ à°¸à±à°¨à±à°¹à°¿à°¤à±à°² à°à±à°°à°à± à°®à°«à°¿à°¨à±âà°²à± à°¬à±à°à± à°à±à°¸à±à°¤à±à°à°¦à°¿. à°à°®à± à°®à°¿à°à°¿à°²à°¿à°¨ à°µà°¾à°à°¿à°¨à°¿ à°°à±à°à± à°°à±à°¤à± à°®à°¾à°°à±à°à±à°à± à°µà°¦à±à°¦ à°ªà±à°°à°¤à°¿ à°¤à°¾à°à°¾ à°¬à°¾à°¤à± à°à±à°¡à±à°¡à±à°¨à± $2à°à± à°µà°¿à°à±à°°à°¯à°¿à°¸à±à°¤à±à°à°¦à°¿. à°à°®à± à°°à±à°¤à± à°®à°¾à°°à±à°à±à°à± à°µà°¦à±à°¦ à°ªà±à°°à°¤à°¿à°°à±à°à± à°à°¨à±à°¨à°¿ à°¡à°¾à°²à°°à±à°²à± à°¸à°à°ªà°¾à°¦à°¿à°¸à±à°¤à±à°à°¦à°¿?</pre>
+    </div>
+</div>
+
+<h3>Sampled message</h3>
+
+<div class="message assistant">
+    <div class="role">
+    assistant 
+    
+    </div>
+    <div class="content">
+    <pre>ఈ గణిత సమస్యను పరిష్కరించడానికి, ముందుగా అందించిన సమాచారం ఆధారంగా తర్కాత్మక అడుగులు తీసుకుందాం:
+
+1. **ప్రారంభ సమాచారం:**
+   - జనేత బాతులు ప్రతిరోజు 16 గుడ్లు పెడతాయి.
+   - ఆమే ప్రతిరోజు ఉదయం అల్పాహారం కోసం మూడు గుడ్లు తింటుంది.
+   - ప్రతిరోజు నాలుగింటిలో తను స్నేహితుల కోసం మఫిన్లు బేక్ చేస్తుంది, అందులో రెండు గుడ్లు ఉపయోగిస్తుంది.
+
+2. **ప్రతిరోజు గుడ్ల వినియోగం:**
+   - ఉదయం అల్పాహారం కోసం: 3 గుడ్లు
+   - స్నేహితుల కోసం మఫిన్లు: 2 గుడ్లు
+
+3. **మొత్తం వినియోగం:**
+   - 3 గుడ్లు (అల్పాహారం) + 2 గుడ్లు (మఫిన్లు) = 5 గుడ్లు
+
+4. **ప్రతిరోజు మిగిలే గుడ్లు:**
+   - 16 గుడ్లు (మొత్తం ఉత్పత్తి) - 5 గుడ్లు (వినియోగం) = 11 గుడ్లు
+
+5. **రైతు మార్కెట్‌కు తీసుకెళ్లే గుడ్లు:**
+   - ప్రతిరోజు మిగిలే గుడ్లు: 11 గుడ్లు
+
+సమాధానం: 11</pre>
+    </div>
+</div>
+<h3>Results</h3>
+<p>Correct Answer: 18</p>
+<p>Extracted Answer: 11</p>
+<p>Score: False</p>
+    <hr>
+    
+    
+<h3>Prompt conversation</h3>
+
+
+<div class="message user">
+    <div class="role">
+    user 
+    
+    </div>
+    <div class="content">
+    <pre>แก้ปัญหาคณิตศาสตร์นี้ ให้ให้ขั้นตอนการใช้เหตุผลก่อนที่จะให้คำตอบสุดท้ายในบรรทัดสุดท้ายโดยอยู่ในรูปแบบ &#34;คำตอบ:&#34; ไม่ควรเพิ่มอะไรนอกจากคำตอบที่เป็นจำนวนเต็มหลังจาก &#34;คำตอบ:&#34;
+
+à¹à¸à¹à¸à¸à¸­à¸à¹à¸à¹à¸à¹à¸à¸§à¸²à¸à¹à¸à¹à¸§à¸±à¸à¸¥à¸° 16 à¸à¸­à¸ à¹à¸à¸­à¸à¸´à¸à¹à¸à¹à¸ªà¸²à¸¡à¸à¸­à¸à¹à¸à¹à¸à¸¡à¸·à¹à¸­à¹à¸à¹à¸²à¸à¸¸à¸à¸§à¸±à¸ à¹à¸¥à¸°à¹à¸à¹à¹à¸à¹à¸ªà¸µà¹à¸à¸­à¸à¸­à¸à¸¡à¸±à¸à¸à¸´à¸à¹à¸«à¹à¹à¸à¸·à¹à¸­à¸à¸à¸¸à¸à¸§à¸±à¸ à¹à¸à¸­à¸à¸²à¸¢à¹à¸à¹à¸à¸µà¹à¹à¸«à¸¥à¸·à¸­à¸à¸µà¹à¸à¸¥à¸²à¸à¹à¸à¸©à¸à¸£à¸à¸£à¸à¸¸à¸à¸§à¸±à¸à¹à¸à¸£à¸²à¸à¸² $2 à¸à¹à¸­à¹à¸à¹à¹à¸à¹à¸à¸ªà¸à¸«à¸à¸¶à¹à¸à¸à¸­à¸ à¹à¸à¸­à¸à¸°à¸¡à¸µà¸£à¸²à¸¢à¹à¸à¹à¸à¸²à¸à¸à¸¥à¸²à¸à¹à¸à¸©à¸à¸£à¸à¸£à¸§à¸±à¸à¸¥à¸°à¸à¸µà¹à¸à¸­à¸¥à¸¥à¸²à¸£à¹</pre>
+    </div>
+</div>
+
+<h3>Sampled message</h3>
+
+<div class="message assistant">
+    <div class="role">
+    assistant 
+    
+    </div>
+    <div class="content">
+    <pre>เพื่อแก้ปัญหานี้ เราจะต้องคำนวณรายได้ของเจเน็ตจากการขายไข่ในแต่ละวันและรวมรายได้ทั้งหมดในหนึ่งสัปดาห์
+
+1. เจเน็ตวางไข่วันละ 16 ฟอง
+2. เธอกินไข่ 3 ฟองต่อวัน ดังนั้นไข่ที่เหลือสำหรับขายคือ 16 - 3 = 13 ฟองต่อวัน
+3. เธอขายไข่ที่เหลือที่ตลาดในราคาฟองละ $2
+
+คำนวณรายได้ต่อวัน:
+- รายได้จากการขายไข่ต่อวัน = 13 ฟอง * $2 = $26
+
+คำนวณรายได้ต่อสัปดาห์:
+- รายได้ต่อสัปดาห์ = $26 * 7 วัน = $182
+
+คำตอบ: 182</pre>
+    </div>
+</div>
+<h3>Results</h3>
+<p>Correct Answer: 18</p>
+<p>Extracted Answer: 182</p>
+<p>Score: False</p>
+    <hr>
+    
+    
+<h3>Prompt conversation</h3>
+
+
+<div class="message user">
+    <div class="role">
+    user 
+    
+    </div>
+    <div class="content">
+    <pre>解决这个数学问题。在最后一行给出答案前，请提供推理步骤。最后一行应该以 &#34;答案: &#34; 的形式独立给出答案。在 &#34;答案：&#34; 后不要添加除整数答案之外的任何内容。
+
+çå¦®ç¹çé¸­å­æ¯å¤©ä¸ 16 é¢èãå¥¹æ¯å¤©æ©ä¸æ©é¤æ¶å 3 é¢ï¼æ¯å¤©ç¨ 4 é¢ä¸ºèªå·±çæååæ¾é¥¼ãå©ä¸çé¸­èå¥¹æ¯å¤©æ¿å»åè´¸å¸åºåï¼æ¯é¢æ°é²é¸­èå 2 ç¾åãå¥¹æ¯å¤©å¨åè´¸å¸åºèµå¤å°é±ï¼</pre>
+    </div>
+</div>
+
+<h3>Sampled message</h3>
+
+<div class="message assistant">
+    <div class="role">
+    assistant 
+    
+    </div>
+    <div class="content">
+    <pre>要解决这个问题，我们需要逐步分析并计算。
+
+1. **计算每天剩余的鸭蛋数量：**
+   - 珍妮特每天下16个蛋。
+   - 她每天早餐吃3个蛋。
+   - 她每天用4个蛋为朋友做松饼。
+
+   因此，每天剩余的鸭蛋数量为：
+   \[
+   16 - 3 - 4 = 9 \text{个}
+   \]
+
+2. **计算每天在农贸市场卖出的鸭蛋数量：**
+   - 每天剩余的9个鸭蛋被拿去卖。
+
+3. **计算每天在农贸市场的收入：**
+   - 每个新鲜鸭蛋卖2美元。
+   - 因此，每天的收入为：
+   \[
+   9 \text{个} \times 2 \text{美元/个} = 18 \text{美元}
+   \]
+
+答案: 18</pre>
+    </div>
+</div>
+<h3>Results</h3>
+<p>Correct Answer: 18</p>
+<p>Extracted Answer: 18</p>
+<p>Score: True</p>
+    <hr>
+    
+    </body>
+</html>

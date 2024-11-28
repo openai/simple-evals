@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <style>
+            .message {
+                padding: 8px 16px;
+                margin-bottom: 8px;
+                border-radius: 4px;
+            }
+            .message.user {
+                background-color: #B2DFDB;
+                color: #00695C;
+            }
+            .message.assistant {
+                background-color: #B39DDB;
+                color: #4527A0;
+            }
+            .message.system {
+                background-color: #EEEEEE;
+                color: #212121;
+            }
+            .role {
+                font-weight: bold;
+                margin-bottom: 4px;
+            }
+            .variant {
+                color: #795548;
+            }
+            table, th, td {
+                border: 1px solid black;
+            }
+            pre {
+                white-space: pre-wrap;
+            }
+        </style>
+    </head>
+    <body>
+    
+    <h1>Metrics</h1>
+    <table>
+    <tr>
+        <th>Metric</th>
+        <th>Value</th>
+    </tr>
+    <tr>
+        <td><b>Score</b></td>
+        <td>1.0</td>
+    </tr>
+    
+    <tr>
+        <td>is_correct</td>
+        <td>1.0</td>
+    </tr>
+    
+    <tr>
+        <td>is_correct:std</td>
+        <td>0.0</td>
+    </tr>
+    
+    <tr>
+        <td>is_incorrect</td>
+        <td>0.0</td>
+    </tr>
+    
+    <tr>
+        <td>is_incorrect:std</td>
+        <td>0.0</td>
+    </tr>
+    
+    <tr>
+        <td>is_not_attempted</td>
+        <td>0.0</td>
+    </tr>
+    
+    <tr>
+        <td>is_not_attempted:std</td>
+        <td>0.0</td>
+    </tr>
+    
+    <tr>
+        <td>score:std</td>
+        <td>0.0</td>
+    </tr>
+    
+    </table>
+    
+    <h1>Examples</h1>
+    
+    
+<h3>Prompt conversation</h3>
+
+
+<div class="message user">
+    <div class="role">
+    user 
+    
+    </div>
+    <div class="content">
+    <pre>In which city of Pakistan was Muhammad Rafiq Tarar, a Pakistani politician, born?</pre>
+    </div>
+</div>
+
+<h3>Sampled message</h3>
+
+<div class="message assistant">
+    <div class="role">
+    assistant 
+    
+    </div>
+    <div class="content">
+    <pre>Muhammad Rafiq Tarar was born in Mandi Bahauddin, Punjab, British India (now Punjab, Pakistan).</pre>
+    </div>
+</div>
+<h3>Results</h3>
+<p>Correct Answer: Mandi Bahauddin, Punjab</p>
+<p>Extracted Answer: Muhammad Rafiq Tarar was born in Mandi Bahauddin, Punjab, British India (now Punjab, Pakistan).</p>
+<p>Score: True</p>
+    <hr>
+    
+    </body>
+</html>
