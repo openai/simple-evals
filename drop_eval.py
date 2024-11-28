@@ -240,12 +240,24 @@ class DropEval(Eval):
         self.seed = 42
         self._num_examples = num_examples
         self._train_samples_per_prompt = train_samples_per_prompt
-        with open("train.jsonl") as f:
-            self.train_samples = [json.loads(line) for line in f]
-        with open("dev.jsonl") as f:
-            self.test_samples = [json.loads(line) for line in f]
+        self.train_jsonl = (
+            "https://openaipublic.blob.core.windows.net/simple-evals/drop_v0_train.jsonl.gz"
+        )
+        self.test_jsonl = (
+            "https://openaipublic.blob.core.windows.net/simple-evals/drop_v0_dev.jsonl.gz"
+        )
+        response = requests.get(self.train_jsonl)
 
-        
+        # Check if the response is gzipped
+        with gzip.GzipFile(fileobj=io.BytesIO(response.content)) as f:
+            self.train_samples = [json.loads(line) for line in f]
+
+        response = requests.get(self.test_jsonl)
+
+        # Check if the response is gzipped
+        with gzip.GzipFile(fileobj=io.BytesIO(response.content)) as f:
+            self.test_samples = [json.loads(line) for line in f]
+    
         if self._num_examples:
             self.test_samples = random.Random(self.seed).sample(
                 self.test_samples, self._num_examples
