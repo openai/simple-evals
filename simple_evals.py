@@ -45,6 +45,9 @@ def main():
             system_message=OPENAI_SYSTEM_MESSAGE_CHATGPT,
             max_tokens=2048,
         ),
+        "o1": O1ChatCompletionSampler(
+            model="o1",
+        ), 
         "o1-preview": O1ChatCompletionSampler(
             model="o1-preview",
         ),
