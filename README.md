@@ -86,6 +86,14 @@ For the [Anthropic API](https://docs.anthropic.com/claude/docs/quickstart-guide)
 pip install anthropic
 ```
 
+For the [xAI API](https://docs.x.ai/docs/overview):
+```bash
+pip install openai
+
+# Create a .env file and add your XAI API key
+echo "XAI_API_KEY=<your-api-key>" > .env
+```
+
 ## Running the evals
 ```bash
 python -m simple-evals.simple_evals --list-models
