@@ -89,7 +89,9 @@ pip install anthropic
 For the [xAI API](https://docs.x.ai/docs/overview):
 ```bash
 pip install openai
-export XAI_API_KEY=<your-api-key>
+
+# Create a .env file and add your XAI API key
+echo "XAI_API_KEY=<your-api-key>" > .env
 ```
 
 ## Running the evals
