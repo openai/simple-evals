@@ -16,6 +16,7 @@ from .sampler.chat_completion_sampler import (
 )
 from .sampler.o1_chat_completion_sampler import O1ChatCompletionSampler
 from .sampler.claude_sampler import ClaudeCompletionSampler, CLAUDE_SYSTEM_MESSAGE_LMSYS
+from .sampler.grok_sampler import GrokCompletionSampler, GROK_SYSTEM_MESSAGE
 
 
 def main():
@@ -47,7 +48,7 @@ def main():
         ),
         "o1": O1ChatCompletionSampler(
             model="o1",
-        ), 
+        ),
         "o1-preview": O1ChatCompletionSampler(
             model="o1-preview",
         ),
@@ -81,6 +82,11 @@ def main():
         "claude-3-opus-20240229_empty": ClaudeCompletionSampler(
             model="claude-3-opus-20240229",
             system_message=CLAUDE_SYSTEM_MESSAGE_LMSYS,
+        ),
+        # grok models:
+        "grok-2-1212": GrokCompletionSampler(
+            model="grok-2-1212",
+            system_message=GROK_SYSTEM_MESSAGE,
         ),
     }
 

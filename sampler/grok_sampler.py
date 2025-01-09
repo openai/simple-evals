@@ -8,7 +8,7 @@ from ..types import MessageList, SamplerBase
 GROK_SYSTEM_MESSAGE = "You are Grok 2, an AI built by xAI, designed to answer almost any question with an outside perspective on humanity, aiming for maximum helpfulness."
 
 
-class GrokSampler(SamplerBase):
+class GrokCompletionSampler(SamplerBase):
     """
     Sample from X.AI's Grok model via their API
     """
