@@ -96,17 +96,17 @@ def main():
 
     providers = {
         # New models:
-        # "exa": ExaSampler(
-        #     api_key=EXA_API_KEY,
-        # ),
-        # "perplexity-pro": PerplexitySampler(
-        #     api_key=PERPLEXITY_API_KEY,
-        #     model="sonar-pro",
-        # ),
-        # "perplexity": PerplexitySampler(
-        #     api_key=PERPLEXITY_API_KEY,
-        #     model="sonar",
-        # ),
+        "exa": ExaSampler(
+            api_key=EXA_API_KEY,
+        ),
+        "perplexity-pro": PerplexitySampler(
+            api_key=PERPLEXITY_API_KEY,
+            model="sonar-pro",
+        ),
+        "perplexity": PerplexitySampler(
+            api_key=PERPLEXITY_API_KEY,
+            model="sonar",
+        ),
         # "you": YouSampler(
         #     api_key=YOU_API_KEY,
         # ),
@@ -114,15 +114,15 @@ def main():
         "brave-rag": ResultSampler(
             provider=BraveSampler(api_key=BRAVE_API_KEY),
         ),
-        # "bing-rag": ResultSampler(
-        #     provider=BingSampler(api_key=BING_API_KEY),
-        # ),
-        # "tavily-rag": ResultSampler(
-        #     provider=TavilySampler(api_key=TAVILY_API_KEY),
-        # ),
-        # "serper-rag": ResultSampler(
-        #     provider=SerperSampler(api_key=SERPER_API_KEY),
-        # ),
+        "bing-rag": ResultSampler(
+            provider=BingSampler(api_key=BING_API_KEY),
+        ),
+        "tavily-rag": ResultSampler(
+            provider=TavilySampler(api_key=TAVILY_API_KEY),
+        ),
+        "serper-rag": ResultSampler(
+            provider=SerperSampler(api_key=SERPER_API_KEY),
+        ),
     }
     all_models = { **providers }
 

@@ -27,7 +27,7 @@ class BraveSampler(SearchResultProvider):
         )
 
     def _truncate_query(self, query: str) -> str:
-        """Truncate query to max length while trying to keep it meaningful"""
+        """Sometimes the query is too long for brave, truncate query to max length while trying to keep it meaningful"""
         if len(query) <= self.max_query_length:
             return query
         
