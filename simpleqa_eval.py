@@ -6,10 +6,11 @@ https://cdn.openai.com/papers/simpleqa.pdf
 
 import random 
 import re
-import blobfile as bf
 import pandas
-from . import common
-from .types import Eval, EvalResult, SamplerBase, SingleEvalResult
+from data_utils import download_file
+
+from common import jinja_env, HTML_JINJA, map_with_progress, aggregate_results
+from eval_types import Eval, EvalResult, SamplerBase, SingleEvalResult
 
 GRADER_TEMPLATE = """
 Your job is to look at a question, a gold target, and a predicted answer, and then assign a grade of either ["CORRECT", "INCORRECT", "NOT_ATTEMPTED"].
@@ -99,11 +100,8 @@ CHOICE_LETTER_TO_STRING = dict(zip(CHOICE_LETTERS, CHOICE_STRINGS))
 
 class SimpleQAEval(Eval):
     def __init__(self, grader_model: SamplerBase, num_examples: int | None = None, n_repeats: int = 1):
-        df = pandas.read_csv(
-            bf.BlobFile(
-                f"https://openaipublic.blob.core.windows.net/simple-evals/simple_qa_test_set.csv"
-            )
-        )
+        file_path = download_file("https://openaipublic.blob.core.windows.net/simple-evals/simple_qa_test_set.csv")
+        df = pandas.read_csv(file_path)
         examples = [row.to_dict() for _, row in df.iterrows()]
         if num_examples:
             assert n_repeats == 1, "n_repeats only supported when max_examples = None"
@@ -143,7 +141,7 @@ class SimpleQAEval(Eval):
                 score = is_correct
 
                 # Create HTML for each sample result
-                html = common.jinja_env.from_string(common.HTML_JINJA).render(
+                html = jinja_env.from_string(HTML_JINJA).render(
                     prompt_messages=prompt_messages,
                     next_message=dict(content=response_text, role="assistant"),
                     score=score,
@@ -158,7 +156,7 @@ class SimpleQAEval(Eval):
                 })
 
             # Run evaluation and collect results
-            results = common.map_with_progress(fn, self.examples)
+            results = map_with_progress(fn, self.examples, num_threads=50)
 
             # Aggregate metrics
             aggregate_metrics = {
@@ -191,6 +189,6 @@ class SimpleQAEval(Eval):
             print(f"Accuracy Given Attempted: {output_d['accuracy_given_attempted']:.3f}")
             print(f"F1 Score: {output_d['f1']:.3f}")
             
-            return common.aggregate_results(results)
-    
+            return aggregate_results(results)
+
 

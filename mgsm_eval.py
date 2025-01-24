@@ -8,11 +8,15 @@ https://arxiv.org/abs/2210.03057 reference: https://github.com/google-research/u
 import re
 from typing import Optional
 
-import blobfile as bf
-
-from . import common
-from .mmlu_eval import HTML_JINJA
-from .types import Eval, EvalResult, SamplerBase, SingleEvalResult
+from data_utils import download_file
+from mmlu_eval import HTML_JINJA
+from eval_types import Eval, EvalResult, SamplerBase, SingleEvalResult
+from common import (
+    HTML_JINJA,
+    jinja_env,
+    map_with_progress,
+    aggregate_results,
+)
 
 ALL_LANGUAGES = ["bn", "de", "en", "es", "fr", "ja", "ru", "sw", "te", "th", "zh"]
 LATIN_LANGUAGES = ["de", "en", "es", "fr", "sw"]
@@ -109,12 +113,13 @@ def score_mgsm(target: str, prediction: str) -> bool:
 def get_lang_examples(lang: str) -> list[dict[str, str]]:
     fpath = LANG_TO_FPATH[lang]
     examples = []
-    with bf.BlobFile(fpath, "r") as f:
+
+    path = download_file(fpath)
+    with open(path, "r", encoding="utf-8") as f:
         for line in f:
             inputs, targets = line.strip().split("\t")
             if "." in targets:
                 raise ValueError(f"targets {targets} contains a decimal point.")
-            # targets = int(targets.replace(",", ""))
             examples.append({"inputs": inputs, "targets": targets, "lang": lang})
     return examples
 
@@ -172,7 +177,7 @@ class MGSMEval(Eval):
             extracted_answer = parse_answer(response_text, answer_prefix)
 
             score = score_mgsm(correct_answer, extracted_answer)
-            html = common.jinja_env.from_string(HTML_JINJA).render(
+            html = jinja_env.from_string(HTML_JINJA).render(
                 prompt_messages=prompt_messages,
                 next_message=dict(content=response_text, role="assistant"),
                 score=score,
@@ -187,5 +192,5 @@ class MGSMEval(Eval):
                 metrics={language: score, latin_language: score},
             )
 
-        results = common.map_with_progress(fn, self.examples)
-        return common.aggregate_results(results, default_stats=("mean", "std"))
+        results = map_with_progress(fn, self.examples)
+        return aggregate_results(results, default_stats=("mean", "std"))

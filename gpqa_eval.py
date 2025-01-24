@@ -7,12 +7,18 @@ https://arxiv.org/abs/2311.12022
 import random
 import re
 
-import blobfile as bf
 import pandas
 
-from . import common
-from .common import ANSWER_PATTERN_MULTICHOICE, HTML_JINJA, format_multichoice_question
-from .types import Eval, EvalResult, MessageList, SamplerBase, SingleEvalResult
+from data_utils import download_file
+from common import (
+    HTML_JINJA,
+    ANSWER_PATTERN_MULTICHOICE,
+    format_multichoice_question,
+    jinja_env,
+    map_with_progress,
+    aggregate_results,
+)
+from eval_types import Eval, EvalResult, MessageList, SamplerBase, SingleEvalResult
 
 
 class GPQAEval(Eval):
@@ -22,9 +28,8 @@ class GPQAEval(Eval):
         variant: str = "diamond",
         num_examples: int | None = None,  # restrict to a subset of the data for debugging
     ):
-        df = pandas.read_csv(
-            bf.BlobFile(f"https://openaipublic.blob.core.windows.net/simple-evals/gpqa_{variant}.csv")
-        )
+        filepath = download_file(f"https://openaipublic.blob.core.windows.net/simple-evals/gpqa_{variant}.csv")
+        df = pandas.read_csv(filepath)
         examples = [row.to_dict() for _, row in df.iterrows()]
         rng = random.Random(0)
         if num_examples:
@@ -58,7 +63,7 @@ class GPQAEval(Eval):
             match = re.search(ANSWER_PATTERN_MULTICHOICE, response_text)
             extracted_answer = match.group(1) if match else None
             score = 1.0 if extracted_answer == correct_answer else 0.0
-            html = common.jinja_env.from_string(HTML_JINJA).render(
+            html = jinja_env.from_string(HTML_JINJA).render(
                 prompt_messages=prompt_messages,
                 next_message=dict(content=response_text, role="assistant"),
                 score=score,
@@ -70,5 +75,5 @@ class GPQAEval(Eval):
                 html=html, score=score, convo=convo, metrics={"chars": len(response_text)}
             )
 
-        results = common.map_with_progress(fn, self.examples)
-        return common.aggregate_results(results)
+        results = map_with_progress(fn, self.examples)
+        return aggregate_results(results)

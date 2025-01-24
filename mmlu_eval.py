@@ -7,19 +7,21 @@ https://arxiv.org/abs/2009.03300
 import random
 import re
 
-import blobfile as bf
 import pandas
+from data_utils import download_file
 
-from . import common
-from .common import (
+from common import (
     HTML_JINJA,
     MULTILINGUAL_ANSWER_PATTERN_TEMPLATE,
     MULTILINGUAL_ANSWER_REGEXES,
     format_multichoice_question,
     normalize_extracted_answer,
     normalize_response,
+    jinja_env,
+    map_with_progress,
+    aggregate_results
 )
-from .types import Eval, EvalResult, SamplerBase, SingleEvalResult
+from eval_types import Eval, EvalResult, SamplerBase, SingleEvalResult
 
 subject2category = {
     "abstract_algebra": "stem",
@@ -84,11 +86,9 @@ subject2category = {
 
 class MMLUEval(Eval):
     def __init__(self, num_examples: int | None = None, language: str = "EN-US"):
-        if language != "EN-US":
-            url = f"https://openaipublic.blob.core.windows.net/simple-evals/mmlu_{language}.csv"
-        else:
-            url = "https://openaipublic.blob.core.windows.net/simple-evals/mmlu.csv"
-        df = pandas.read_csv(bf.BlobFile(url))
+        url = f"https://openaipublic.blob.core.windows.net/simple-evals/mmlu_{language}.csv" if language != "EN-US" else "https://openaipublic.blob.core.windows.net/simple-evals/mmlu.csv"
+        file_path = download_file(url)
+        df = pandas.read_csv(file_path)
         examples = [row.to_dict() for _, row in df.iterrows()]
         if num_examples:
             examples = random.Random(0).sample(examples, num_examples)
@@ -110,7 +110,7 @@ class MMLUEval(Eval):
                     extracted_answer = normalize_extracted_answer(match.group(1))
                     break
             score = 1.0 if extracted_answer == row["Answer"] else 0.0
-            html = common.jinja_env.from_string(HTML_JINJA).render(
+            html = jinja_env.from_string(HTML_JINJA).render(
                 prompt_messages=prompt_messages,
                 next_message=dict(content=response_text, role="assistant"),
                 score=score,
@@ -123,5 +123,5 @@ class MMLUEval(Eval):
                 html=html, score=score, metrics={category: score}, convo=convo
             )
 
-        results = common.map_with_progress(fn, self.examples)
-        return common.aggregate_results(results)
+        results = map_with_progress(fn, self.examples)
+        return aggregate_results(results)

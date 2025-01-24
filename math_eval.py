@@ -7,13 +7,18 @@ https://arxiv.org/abs/2103.03874
 import random
 import re
 from typing import Literal
-
-import blobfile as bf
 import pandas
 
-from . import common
-from .common import ANSWER_PATTERN, HTML_JINJA, check_equality
-from .types import Eval, EvalResult, SamplerBase, SingleEvalResult
+from data_utils import download_file
+from common import (
+    HTML_JINJA,
+    ANSWER_PATTERN,
+    check_equality,
+    jinja_env,
+    map_with_progress,
+    aggregate_results,
+)
+from eval_types import Eval, EvalResult, SamplerBase, SingleEvalResult
 
 QUERY_TEMPLATE = """
 Solve the following math problem step by step. The last line of your response should be of the form Answer: $ANSWER (without quotes) where $ANSWER is the answer to the problem.
@@ -32,9 +37,8 @@ class MathEval(Eval):
         n_repeats: int = 16,
         split: Literal["math_test", "math_500_test"] = "math_test",
     ):
-        df = pandas.read_csv(
-            bf.BlobFile(f"https://openaipublic.blob.core.windows.net/simple-evals/{split}.csv")
-        )
+        filepath = download_file(f"https://openaipublic.blob.core.windows.net/simple-evals/{split}.csv")
+        df = pandas.read_csv(filepath)
         examples = [row.to_dict() for _, row in df.iterrows()]
         if num_examples:
             assert n_repeats == 1, "n_repeats only supported for num_examples = None"
@@ -52,7 +56,7 @@ class MathEval(Eval):
             match = re.search(ANSWER_PATTERN, response_text)
             extracted_answer = match.group(1) if match else None
             score = float(check_equality(self.equality_checker, row["Answer"], extracted_answer))
-            html = common.jinja_env.from_string(HTML_JINJA).render(
+            html = jinja_env.from_string(HTML_JINJA).render(
                 prompt_messages=prompt_messages,
                 next_message=dict(content=response_text, role="assistant"),
                 score=score,
@@ -62,5 +66,5 @@ class MathEval(Eval):
             convo = prompt_messages + [dict(content=response_text, role="assistant")]
             return SingleEvalResult(html=html, score=score, convo=convo)
 
-        results = common.map_with_progress(fn, self.examples)
-        return common.aggregate_results(results)
+        results = map_with_progress(fn, self.examples)
+        return aggregate_results(results)

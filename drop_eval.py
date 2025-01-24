@@ -9,15 +9,14 @@ import json
 import random
 import re
 import string
-from typing import Any, Dict, List, Optional, Set, Tuple, Union
+from typing import Any, Dict, List, Set, Tuple, Union
 
-import blobfile as bf
 import numpy as np
 from scipy.optimize import linear_sum_assignment
 
-from . import common
-from .common import ANSWER_PATTERN, HTML_JINJA
-from .types import Eval, EvalResult, SamplerBase, SingleEvalResult
+from common import ANSWER_PATTERN, HTML_JINJA, jinja_env, map_with_progress, aggregate_results
+from eval_types import Eval, EvalResult, SamplerBase, SingleEvalResult
+from data_utils import download_file
 
 """
 From here through _normalize_answer was originally copied from:
@@ -245,9 +244,12 @@ class DropEval(Eval):
         self.test_jsonl = (
             "https://openaipublic.blob.core.windows.net/simple-evals/drop_v0_dev.jsonl.gz"
         )
-        with gzip.GzipFile(fileobj=bf.BlobFile(self.train_jsonl, "rb"), mode="rb") as f:
+        train_path = download_file(self.train_jsonl)
+        test_path = download_file(self.test_jsonl)
+        
+        with gzip.open(train_path, 'rt') as f:
             self.train_samples = list(map(json.loads, f.readlines()))
-        with gzip.GzipFile(fileobj=bf.BlobFile(self.test_jsonl, "rb"), mode="rb") as f:
+        with gzip.open(test_path, 'rt') as f:
             self.test_samples = list(map(json.loads, f.readlines()))
             if self._num_examples:
                 self.test_samples = random.Random(self.seed).sample(
@@ -293,7 +295,7 @@ Think step by step, then write a line of the form "Answer: $ANSWER" at the end o
                         extracted_answer for i in range(len(correct_answers)) if matches[i]
                     ]
                     score = True in matches
-                    html = common.jinja_env.from_string(HTML_JINJA).render(
+                    html = jinja_env.from_string(HTML_JINJA).render(
                         prompt_messages=prompt_messages,
                         next_message=dict(content=extracted_answer, role="assistant"),
                         score=score,
@@ -308,5 +310,5 @@ Think step by step, then write a line of the form "Answer: $ANSWER" at the end o
                         metrics={"em_score": em_score, "f1_score": f1_score},
                     )
 
-        results = common.map_with_progress(fn, self.test_samples)
-        return common.aggregate_results(results)
+        results = map_with_progress(fn, self.test_samples)
+        return aggregate_results(results)

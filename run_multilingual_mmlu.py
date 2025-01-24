@@ -2,15 +2,14 @@ import json
 
 import pandas as pd
 
-from . import common
-from .mmlu_eval import MMLUEval
-from .sampler.chat_completion_sampler import (
+from common import make_report
+from mmlu_eval import MMLUEval
+from sampler.chat_completion_sampler import (
     OPENAI_SYSTEM_MESSAGE_API,
     OPENAI_SYSTEM_MESSAGE_CHATGPT,
     ChatCompletionSampler,
 )
-from .sampler.o1_chat_completion_sampler import O1ChatCompletionSampler
-
+from sampler.o1_chat_completion_sampler import O1ChatCompletionSampler
 
 def main():
     debug = True
@@ -99,7 +98,7 @@ def main():
             report_filename = f"/tmp/{file_stem}{debug_suffix}.html"
             print(f"Writing report to {report_filename}")
             with open(report_filename, "w") as fh:
-                fh.write(common.make_report(result))
+                fh.write(make_report(result))
             metrics = result.metrics | {"score": result.score}
             print(metrics)
             result_filename = f"/tmp/{file_stem}{debug_suffix}.json"

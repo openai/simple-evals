@@ -4,7 +4,7 @@ from typing import Any
 import openai
 from openai import OpenAI
 
-from ..types import MessageList, SamplerBase
+from eval_types import MessageList, SamplerBase
 
 class O1ChatCompletionSampler(SamplerBase):
     """

@@ -1,22 +1,30 @@
 import json
 import argparse
 import pandas as pd
-from . import common
-from .drop_eval import DropEval
-from .gpqa_eval import GPQAEval
-from .humaneval_eval import HumanEval
-from .math_eval import MathEval
-from .mgsm_eval import MGSMEval
-from .mmlu_eval import MMLUEval
-from .simpleqa_eval import SimpleQAEval
-from .sampler.chat_completion_sampler import (
+from common import make_report
+from drop_eval import DropEval
+from gpqa_eval import GPQAEval
+from humaneval_eval import HumanEval
+from math_eval import MathEval
+from mgsm_eval import MGSMEval
+from mmlu_eval import MMLUEval
+from simpleqa_eval import SimpleQAEval
+from sampler.chat_completion_sampler import (
     OPENAI_SYSTEM_MESSAGE_API,
     OPENAI_SYSTEM_MESSAGE_CHATGPT,
     ChatCompletionSampler,
 )
-from .sampler.o1_chat_completion_sampler import O1ChatCompletionSampler
-from .sampler.claude_sampler import ClaudeCompletionSampler, CLAUDE_SYSTEM_MESSAGE_LMSYS
-
+from sampler.o1_chat_completion_sampler import O1ChatCompletionSampler
+from sampler.claude_sampler import ClaudeCompletionSampler, CLAUDE_SYSTEM_MESSAGE_LMSYS
+from sampler.exa_sampler import ExaSampler
+from sampler.perplexity_sampler import PerplexitySampler
+from sampler.you_sampler import YouSampler
+from sampler.brave_sampler import BraveSampler
+from sampler.bing_sampler import BingSampler
+from sampler.tavily_sampler import TavilySampler
+from sampler.serper_sampler import SerperSampler
+from sampler.result_sampler import ResultSampler
+from constants import (EXA_API_KEY, PERPLEXITY_API_KEY, YOU_API_KEY, BRAVE_API_KEY, BING_API_KEY, TAVILY_API_KEY, SERPER_API_KEY)
 
 def main():
     parser = argparse.ArgumentParser(
@@ -33,6 +41,7 @@ def main():
 
     args = parser.parse_args()
 
+    """
     models = {
         # chatgpt models:
         "gpt-4o-2024-11-20_assistant": ChatCompletionSampler(
@@ -83,18 +92,51 @@ def main():
             system_message=CLAUDE_SYSTEM_MESSAGE_LMSYS,
         ),
     }
+    """
+
+    providers = {
+        # New models:
+        # "exa": ExaSampler(
+        #     api_key=EXA_API_KEY,
+        # ),
+        # "perplexity-pro": PerplexitySampler(
+        #     api_key=PERPLEXITY_API_KEY,
+        #     model="sonar-pro",
+        # ),
+        # "perplexity": PerplexitySampler(
+        #     api_key=PERPLEXITY_API_KEY,
+        #     model="sonar",
+        # ),
+        # "you": YouSampler(
+        #     api_key=YOU_API_KEY,
+        # ),
+        # Result-based models using different search providers
+        "brave-rag": ResultSampler(
+            provider=BraveSampler(api_key=BRAVE_API_KEY),
+        ),
+        # "bing-rag": ResultSampler(
+        #     provider=BingSampler(api_key=BING_API_KEY),
+        # ),
+        # "tavily-rag": ResultSampler(
+        #     provider=TavilySampler(api_key=TAVILY_API_KEY),
+        # ),
+        # "serper-rag": ResultSampler(
+        #     provider=SerperSampler(api_key=SERPER_API_KEY),
+        # ),
+    }
+    all_models = { **providers }
 
     if args.list_models:
         print("Available models:")
-        for model_name in models.keys():
+        for model_name in all_models.keys():
             print(f" - {model_name}")
         return
 
     if args.model:
-        if args.model not in models:
+        if args.model not in all_models:
             print(f"Error: Model '{args.model}' not found.")
             return
-        models = {args.model: models[args.model]}
+        all_models = {args.model: all_models[args.model]}
 
     grading_sampler = ChatCompletionSampler(model="gpt-4o")
     equality_checker = ChatCompletionSampler(model="gpt-4-turbo-preview")
@@ -137,28 +179,31 @@ def main():
 
     evals = {
         eval_name: get_evals(eval_name, args.debug)
-        for eval_name in ["simpleqa", "mmlu", "math", "gpqa", "mgsm", "drop"]
+        # Excluded are:  "mmlu", "gpqa", "mgsm", "drop", "math", "humaneval"
+        for eval_name in ["simpleqa"]
     }
     print(evals)
     debug_suffix = "_DEBUG" if args.debug else ""
     print(debug_suffix)
     mergekey2resultpath = {}
-    for model_name, sampler in models.items():
-        for eval_name, eval_obj in evals.items():
+    for eval_name, eval_obj in evals.items():
+        print(f"\nRunning {eval_name} evaluation:")
+        for model_name, sampler in all_models.items():
+            print(f"  Testing model: {model_name}")
             result = eval_obj(sampler)
-            # ^^^ how to use a sampler
             file_stem = f"{eval_name}_{model_name}"
             report_filename = f"/tmp/{file_stem}{debug_suffix}.html"
-            print(f"Writing report to {report_filename}")
+            print(f"  Writing report to {report_filename}")
             with open(report_filename, "w") as fh:
-                fh.write(common.make_report(result))
+                fh.write(make_report(result))
             metrics = result.metrics | {"score": result.score}
-            print(metrics)
+            print(f"  Results: {metrics}")
             result_filename = f"/tmp/{file_stem}{debug_suffix}.json"
             with open(result_filename, "w") as f:
                 f.write(json.dumps(metrics, indent=2))
-            print(f"Writing results to {result_filename}")
+            print(f"  Writing results to {result_filename}")
             mergekey2resultpath[f"{file_stem}"] = result_filename
+
     merge_metrics = []
     for eval_model_name, result_filename in mergekey2resultpath.items():
         try:

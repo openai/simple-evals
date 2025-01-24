@@ -4,6 +4,7 @@ from typing import Any
 Message = dict[str, Any]  # keys role, content
 MessageList = list[Message]
 
+SearchResult = list[dict[str, Any]]
 
 class SamplerBase:
     """
@@ -13,7 +14,32 @@ class SamplerBase:
 
     def __call__(self, message_list: MessageList) -> str:
         raise NotImplementedError
+    
+    def __extract_query_from_messages__(self, message_list: MessageList) -> str:
+        """Extract the last user message as the query"""
+        
+        for message in reversed(message_list):
+            if message["role"] == "user":
+                if isinstance(message["content"], str):
+                    return message["content"]
+                elif isinstance(message["content"], list):
+                    return " ".join(
+                        part["text"] for part in message["content"] 
+                        if isinstance(part, dict) and "text" in part
+                    )
+                
+        raise ValueError("No user message found in message list")
+    
+class SearchResultProvider:
+    """
+    Base class for defining a search result provider.
+    """
 
+    def __call__(self, query: str) -> str:
+        raise NotImplementedError
+    
+    def __format_context__(self, results: SearchResult) -> str:
+        raise NotImplementedError
 
 @dataclass
 class EvalResult:

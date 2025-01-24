@@ -4,26 +4,21 @@ Mark Chen and Jerry Tworek and Heewoo Jun and Qiming Yuan and Henrique Ponde de 
 https://arxiv.org/abs/2107.03374 https://github.com/openai/human-eval/ 
 """
 
-import json
-import logging
-import multiprocessing
 import random
 import re
-from collections import Counter, defaultdict
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from io import BytesIO
-from typing import Any, Tuple
 
-import blobfile as bf
-import tqdm
-from human_eval.data import HUMAN_EVAL, read_problems
+from human_eval.data  import read_problems
 from human_eval.evaluation import estimate_pass_at_k
 from human_eval.execution import check_correctness  # , unsafe_execute
 
-from . import common
-from .common import HTML_JINJA
-from .types import Eval, EvalResult, SamplerBase, SingleEvalResult
-
+from common import (
+    HTML_JINJA,
+    jinja_env,
+    map_with_progress,
+    aggregate_results,
+)
+from eval_types import Eval, EvalResult, SamplerBase, SingleEvalResult
 
 def evaluate_functional_correctness(
     sample: dict[str, str],
@@ -94,7 +89,7 @@ class HumanEval(Eval):
             total = len(results)
             correct = sum(results)
             score = sum(results) / len(results)
-            html = common.jinja_env.from_string(HTML_JINJA).render(
+            html = jinja_env.from_string(HTML_JINJA).render(
                 prompt_messages=prompt_messages,
                 next_message=dict(content=completions[0], role="assistant"),
                 score=score,
@@ -116,5 +111,5 @@ class HumanEval(Eval):
                 },
             )
 
-        results = common.map_with_progress(fn, self.examples, num_threads=3)
-        return common.aggregate_results(results)
+        results = map_with_progress(fn, self.examples, num_threads=3)
+        return aggregate_results(results)
