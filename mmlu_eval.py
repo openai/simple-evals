@@ -7,7 +7,6 @@ https://arxiv.org/abs/2009.03300
 import random
 import re
 
-import blobfile as bf
 import pandas
 
 from . import common
@@ -88,7 +87,7 @@ class MMLUEval(Eval):
             url = f"https://openaipublic.blob.core.windows.net/simple-evals/mmlu_{language}.csv"
         else:
             url = "https://openaipublic.blob.core.windows.net/simple-evals/mmlu.csv"
-        df = pandas.read_csv(bf.BlobFile(url))
+        df = pandas.read_csv(url)
         examples = [row.to_dict() for _, row in df.iterrows()]
         if num_examples:
             examples = random.Random(0).sample(examples, num_examples)

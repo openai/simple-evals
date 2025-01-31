@@ -8,8 +8,6 @@ https://arxiv.org/abs/2210.03057 reference: https://github.com/google-research/u
 import re
 from typing import Optional
 
-import blobfile as bf
-
 from . import common
 from .mmlu_eval import HTML_JINJA
 from .types import Eval, EvalResult, SamplerBase, SingleEvalResult
@@ -109,7 +107,7 @@ def score_mgsm(target: str, prediction: str) -> bool:
 def get_lang_examples(lang: str) -> list[dict[str, str]]:
     fpath = LANG_TO_FPATH[lang]
     examples = []
-    with bf.BlobFile(fpath, "r") as f:
+    with common.url_to_fileobj(fpath, binary=False) as f:
         for line in f:
             inputs, targets = line.strip().split("\t")
             if "." in targets:
@@ -177,7 +175,7 @@ class MGSMEval(Eval):
                 next_message=dict(content=response_text, role="assistant"),
                 score=score,
                 correct_answer=correct_answer,
-                extracted_answer=extracted_answer,
+                extracted_answer=extracted_answer or None,
             )
             convo = prompt_messages + [dict(content=response_text, role="assistant")]
             return SingleEvalResult(
