@@ -8,7 +8,6 @@ import random
 import re
 from typing import Literal
 
-import blobfile as bf
 import pandas
 
 from . import common
@@ -33,7 +32,7 @@ class MathEval(Eval):
         split: Literal["math_test", "math_500_test"] = "math_test",
     ):
         df = pandas.read_csv(
-            bf.BlobFile(f"https://openaipublic.blob.core.windows.net/simple-evals/{split}.csv")
+            f"https://openaipublic.blob.core.windows.net/simple-evals/{split}.csv"
         )
         examples = [row.to_dict() for _, row in df.iterrows()]
         if num_examples:

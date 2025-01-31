@@ -7,9 +7,9 @@ from openai import OpenAI
 from ..types import MessageList, SamplerBase
 
 
-class O1ChatCompletionSampler(SamplerBase):
+class OChatCompletionSampler(SamplerBase):
     """
-    Sample from OpenAI's chat completion API for o1 models
+    Sample from OpenAI's chat completion API for o series models
     """
 
     def __init__(

@@ -3,8 +3,10 @@ from collections import defaultdict
 from multiprocessing.pool import ThreadPool
 from typing import Any
 
+import io
 import jinja2
 import numpy as np
+import requests
 from tqdm import tqdm
 
 from .types import EvalResult, Message, SamplerBase, SingleEvalResult
@@ -20,7 +22,7 @@ C) {C}
 D) {D}
 """.strip()
 
-ANSWER_PATTERN_MULTICHOICE = r"(?i)Answer[ \t]*:[ \t]*([A-D])"
+ANSWER_PATTERN_MULTICHOICE = r"(?i)Answer[ \t]*:[ \t]*\$?([A-D])\$?"
 ANSWER_PATTERN = r"(?i)Answer\s*:\s*([^\n]+)"
 MULTILINGUAL_ANSWER_PATTERN_TEMPLATE = (
     "(?i){}[ \t]*([A-D]|[أ-د]|[অ]|[ব]|[ড]|[ঢ]|[Ａ]|[Ｂ]|[Ｃ]|[Ｄ])"
@@ -219,7 +221,7 @@ jinja_env = jinja2.Environment(
 _message_template = """
 <div class="message {{ role }}">
     <div class="role">
-    {{ role }} 
+    {{ role }}
     {% if variant %}<span class="variant">({{ variant }})</span>{% endif %}
     </div>
     <div class="content">
@@ -364,3 +366,9 @@ def normalize_extracted_answer(extracted_answer: str) -> str:
         .replace("Ｄ", " D")
         .strip()
     )
+
+
+def url_to_fileobj(url: str, binary=False) -> Any:
+    response = requests.get(url)
+    response.raise_for_status()
+    return io.BytesIO(response.content) if binary else io.StringIO(response.text)
