@@ -28,12 +28,9 @@ def main():
         "o1-preview": OChatCompletionSampler(
             model="o1-preview",
         ),
+        # Default == Medium
         "o1-mini": OChatCompletionSampler(
             model="o1-mini",
-        ),
-        # Default == Medium
-        "o3-mini": OChatCompletionSampler(
-            model="o3-mini",
         ),
         "o3-mini_high": OChatCompletionSampler(
             model="o3-mini",
