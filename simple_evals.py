@@ -58,10 +58,6 @@ def main():
             model="o3-mini",
             reasoning_effort="high",
         ),
-        "o3-mini_medium": OChatCompletionSampler(
-            model="o3-mini",
-            reasoning_effort="medium",
-        ),
         "o3-mini_low": OChatCompletionSampler(
             model="o3-mini",
             reasoning_effort="low",
