@@ -54,6 +54,10 @@ def main():
         "o1-mini": OChatCompletionSampler(
             model="o1-mini",
         ),
+        # Default == Medium
+        "o3-mini": OChatCompletionSampler(
+            model="o3-mini",
+        ),
         "o3-mini_high": OChatCompletionSampler(
             model="o3-mini",
             reasoning_effort="high",
@@ -145,7 +149,7 @@ def main():
 
     evals = {
         eval_name: get_evals(eval_name, args.debug)
-        for eval_name in ["simpleqa", "mmlu", "math", "gpqa", "mgsm", "drop"]
+        for eval_name in ["simpleqa", "mmlu", "math", "gpqa", "mgsm", "drop", "humaneval"]
     }
     print(evals)
     debug_suffix = "_DEBUG" if args.debug else ""
