@@ -11,13 +11,13 @@ class ExaSampler(SamplerBase):
     def __init__(
         self,
         api_key: str,
-        expanded_queries_limit: int = 1,
+        mode: str = "accurate",
         include_text: bool = False,
         max_retries: int = 3,
-        base_url: str = "https://api.exa.ai",
+        base_url: str = "https://api.exa.sh",
     ):
         self.api_key = api_key
-        self.expanded_queries_limit = expanded_queries_limit
+        self.mode = mode
         self.include_text = include_text
         self.max_retries = max_retries
         self.client = httpx.Client(
@@ -37,8 +37,8 @@ class ExaSampler(SamplerBase):
         
         payload = {
             "query": query,
-            "expandedQueriesLimit": self.expanded_queries_limit,
-            "includeText": self.include_text,
+            "mode": self.mode,
+            "text": self.include_text,
             "stream": False,
         }
 

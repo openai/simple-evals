@@ -12,7 +12,6 @@ OPENAI_SYSTEM_MESSAGE_CHATGPT = (
     + "\nKnowledge cutoff: 2023-12\nCurrent date: 2024-04-01"
 )
 
-
 class ChatCompletionSampler(SamplerBase):
     """
     Sample from OpenAI's chat completion API
