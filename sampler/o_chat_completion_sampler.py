@@ -6,13 +6,16 @@ from openai import OpenAI
 
 from ..types import MessageList, SamplerBase
 
-class O1ChatCompletionSampler(SamplerBase):
+
+class OChatCompletionSampler(SamplerBase):
     """
-    Sample from OpenAI's chat completion API for o1 models
+    Sample from OpenAI's chat completion API for o series models
     """
 
     def __init__(
         self,
+        *,
+        reasoning_effort: str | None = None,
         model: str = "o1-mini",
     ):
         self.api_key_name = "OPENAI_API_KEY"
@@ -20,6 +23,7 @@ class O1ChatCompletionSampler(SamplerBase):
         # using api_key=os.environ.get("OPENAI_API_KEY")  # please set your API_KEY
         self.model = model
         self.image_format = "url"
+        self.reasoning_effort = reasoning_effort
 
     def _handle_image(
         self, image: str, encoding: str = "base64", format: str = "png", fovea: int = 768
@@ -45,6 +49,7 @@ class O1ChatCompletionSampler(SamplerBase):
                 response = self.client.chat.completions.create(
                     model=self.model,
                     messages=message_list,
+                    reasoning_effort=self.reasoning_effort,
                 )
                 return response.choices[0].message.content
             # NOTE: BadRequestError is triggered once for MMMU, please uncomment if you are reruning MMMU

@@ -9,7 +9,7 @@ from .sampler.chat_completion_sampler import (
     OPENAI_SYSTEM_MESSAGE_CHATGPT,
     ChatCompletionSampler,
 )
-from .sampler.o1_chat_completion_sampler import O1ChatCompletionSampler
+from .sampler.o_chat_completion_sampler import OChatCompletionSampler
 
 
 def main():
@@ -25,11 +25,23 @@ def main():
             system_message=OPENAI_SYSTEM_MESSAGE_API,
             max_tokens=2048,
         ),
-        "o1-preview": O1ChatCompletionSampler(
+        "o1-preview": OChatCompletionSampler(
             model="o1-preview",
         ),
-        "o1-mini": O1ChatCompletionSampler(
+        "o1-mini": OChatCompletionSampler(
             model="o1-mini",
+        ),
+        # Default == Medium
+        "o3-mini": OChatCompletionSampler(
+            model="o3-mini",
+        ),
+        "o3-mini_high": OChatCompletionSampler(
+            model="o3-mini",
+            reasoning_effort="high",
+        ),
+        "o3-mini_low": OChatCompletionSampler(
+            model="o3-mini",
+            reasoning_effort="low",
         ),
     }
 
