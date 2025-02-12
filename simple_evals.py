@@ -45,8 +45,8 @@ def main():
             system_message=OPENAI_SYSTEM_MESSAGE_CHATGPT,
             max_tokens=2048,
         ),
-        "o1": OChatCompletionSampler(
-            model="o1",
+        "deepseek-ai/DeepSeek-R1-Distill-Qwen-7B": OChatCompletionSampler(
+            model="deepseek-ai/DeepSeek-R1-Distill-Qwen-7B",
         ),
         "o1-preview": OChatCompletionSampler(
             model="o1-preview",
@@ -128,7 +128,7 @@ def main():
                 )
             case "gpqa":
                 return GPQAEval(
-                    n_repeats=1 if debug_mode else 10, num_examples=num_examples
+                    n_repeats=10
                 )
             case "mgsm":
                 return MGSMEval(num_examples_per_lang=10 if debug_mode else 250)
@@ -149,7 +149,7 @@ def main():
 
     evals = {
         eval_name: get_evals(eval_name, args.debug)
-        for eval_name in ["simpleqa", "mmlu", "math", "gpqa", "mgsm", "drop", "humaneval"]
+        for eval_name in [ "gpqa"]
     }
     print(evals)
     debug_suffix = "_DEBUG" if args.debug else ""

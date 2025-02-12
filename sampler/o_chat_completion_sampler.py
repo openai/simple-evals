@@ -1,4 +1,4 @@
-import time
+sampler/o_chat_completion_sampler.py import time
 from typing import Any
 
 import openai
@@ -19,7 +19,7 @@ class OChatCompletionSampler(SamplerBase):
         model: str = "o1-mini",
     ):
         self.api_key_name = "OPENAI_API_KEY"
-        self.client = OpenAI()
+        self.client = OpenAI(base_url="http://127.0.0.1:30000/v1", api_key = "None")
         # using api_key=os.environ.get("OPENAI_API_KEY")  # please set your API_KEY
         self.model = model
         self.image_format = "url"
