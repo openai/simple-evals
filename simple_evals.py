@@ -119,8 +119,11 @@ def main():
             return
         models = {args.model: models[args.model]}
 
-    grading_sampler = ChatCompletionSampler(model="gpt-4o")
-    equality_checker = ChatCompletionSampler(model="gpt-4-turbo-preview")
+    # grading_sampler = ChatCompletionSampler(model="gpt-4o")
+    # equality_checker = ChatCompletionSampler(model="gpt-4-turbo-preview")
+
+    grading_sampler = ChatCompletionSampler(model="llama-3.3-70b")
+    equality_checker = ChatCompletionSampler(model="llama-3.3-70b")
     # ^^^ used for fuzzy matching, just for math
 
     def get_evals(eval_name, debug_mode):
