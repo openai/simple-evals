@@ -1,21 +1,26 @@
-import json
 import argparse
+import json
+
 import pandas as pd
-from . import common
-from .drop_eval import DropEval
-from .gpqa_eval import GPQAEval
-from .humaneval_eval import HumanEval
-from .math_eval import MathEval
-from .mgsm_eval import MGSMEval
-from .mmlu_eval import MMLUEval
-from .simpleqa_eval import SimpleQAEval
-from .sampler.chat_completion_sampler import (
+from dotenv import load_dotenv
+
+import common
+from drop_eval import DropEval
+from gpqa_eval import GPQAEval
+from humaneval_eval import HumanEval
+from math_eval import MathEval
+from mgsm_eval import MGSMEval
+from mmlu_eval import MMLUEval
+from sampler.chat_completion_sampler import (
     OPENAI_SYSTEM_MESSAGE_API,
     OPENAI_SYSTEM_MESSAGE_CHATGPT,
     ChatCompletionSampler,
 )
-from .sampler.o_chat_completion_sampler import OChatCompletionSampler
-from .sampler.claude_sampler import ClaudeCompletionSampler, CLAUDE_SYSTEM_MESSAGE_LMSYS
+from sampler.claude_sampler import CLAUDE_SYSTEM_MESSAGE_LMSYS, ClaudeCompletionSampler
+from sampler.o_chat_completion_sampler import OChatCompletionSampler
+from simpleqa_eval import SimpleQAEval
+
+load_dotenv()
 
 
 def main():
@@ -94,6 +99,12 @@ def main():
             model="claude-3-opus-20240229",
             system_message=CLAUDE_SYSTEM_MESSAGE_LMSYS,
         ),
+        # llama models
+        "llama-3-8b": ChatCompletionSampler(
+            model="llama-3-8b",
+            system_message=OPENAI_SYSTEM_MESSAGE_API,
+            max_tokens=2048,
+        ),
     }
 
     if args.list_models:
@@ -108,8 +119,11 @@ def main():
             return
         models = {args.model: models[args.model]}
 
-    grading_sampler = ChatCompletionSampler(model="gpt-4o")
-    equality_checker = ChatCompletionSampler(model="gpt-4-turbo-preview")
+    # grading_sampler = ChatCompletionSampler(model="gpt-4o")
+    # equality_checker = ChatCompletionSampler(model="gpt-4-turbo-preview")
+
+    grading_sampler = ChatCompletionSampler(model="llama-3.3-70b")
+    equality_checker = ChatCompletionSampler(model="llama-3.3-70b")
     # ^^^ used for fuzzy matching, just for math
 
     def get_evals(eval_name, debug_mode):
@@ -149,7 +163,15 @@ def main():
 
     evals = {
         eval_name: get_evals(eval_name, args.debug)
-        for eval_name in ["simpleqa", "mmlu", "math", "gpqa", "mgsm", "drop", "humaneval"]
+        for eval_name in [
+            # "simpleqa",
+            # "mmlu",
+            # "math",
+            "gpqa",
+            # "mgsm",
+            "drop",
+            # "humaneval",
+        ]
     }
     print(evals)
     debug_suffix = "_DEBUG" if args.debug else ""
@@ -160,13 +182,13 @@ def main():
             result = eval_obj(sampler)
             # ^^^ how to use a sampler
             file_stem = f"{eval_name}_{model_name}"
-            report_filename = f"/tmp/{file_stem}{debug_suffix}.html"
+            report_filename = f"tmp/{file_stem}{debug_suffix}.html"
             print(f"Writing report to {report_filename}")
             with open(report_filename, "w") as fh:
                 fh.write(common.make_report(result))
             metrics = result.metrics | {"score": result.score}
             print(metrics)
-            result_filename = f"/tmp/{file_stem}{debug_suffix}.json"
+            result_filename = f"tmp/{file_stem}{debug_suffix}.json"
             with open(result_filename, "w") as f:
                 f.write(json.dumps(metrics, indent=2))
             print(f"Writing results to {result_filename}")
