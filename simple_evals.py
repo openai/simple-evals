@@ -1,21 +1,26 @@
-import json
 import argparse
+import json
+
 import pandas as pd
-from . import common
-from .drop_eval import DropEval
-from .gpqa_eval import GPQAEval
-from .humaneval_eval import HumanEval
-from .math_eval import MathEval
-from .mgsm_eval import MGSMEval
-from .mmlu_eval import MMLUEval
-from .simpleqa_eval import SimpleQAEval
-from .sampler.chat_completion_sampler import (
+from dotenv import load_dotenv
+
+import common
+from drop_eval import DropEval
+from gpqa_eval import GPQAEval
+from humaneval_eval import HumanEval
+from math_eval import MathEval
+from mgsm_eval import MGSMEval
+from mmlu_eval import MMLUEval
+from sampler.chat_completion_sampler import (
     OPENAI_SYSTEM_MESSAGE_API,
     OPENAI_SYSTEM_MESSAGE_CHATGPT,
     ChatCompletionSampler,
 )
-from .sampler.o_chat_completion_sampler import OChatCompletionSampler
-from .sampler.claude_sampler import ClaudeCompletionSampler, CLAUDE_SYSTEM_MESSAGE_LMSYS
+from sampler.claude_sampler import CLAUDE_SYSTEM_MESSAGE_LMSYS, ClaudeCompletionSampler
+from sampler.o_chat_completion_sampler import OChatCompletionSampler
+from simpleqa_eval import SimpleQAEval
+
+load_dotenv()
 
 
 def main():
@@ -149,7 +154,15 @@ def main():
 
     evals = {
         eval_name: get_evals(eval_name, args.debug)
-        for eval_name in ["simpleqa", "mmlu", "math", "gpqa", "mgsm", "drop", "humaneval"]
+        for eval_name in [
+            "simpleqa",
+            "mmlu",
+            "math",
+            "gpqa",
+            "mgsm",
+            "drop",
+            "humaneval",
+        ]
     }
     print(evals)
     debug_suffix = "_DEBUG" if args.debug else ""

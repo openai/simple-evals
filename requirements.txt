@@ -1,0 +1,7 @@
+openai
+anthropic
+pandas
+jinja2
+requests
+scipy
+python-dotenv
