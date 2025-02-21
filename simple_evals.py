@@ -1,7 +1,9 @@
-import argparse
 import json
+from pathlib import Path
+from typing import Dict, Optional
 
 import pandas as pd
+import typer
 from dotenv import load_dotenv
 
 import common
@@ -20,25 +22,16 @@ from sampler.claude_sampler import CLAUDE_SYSTEM_MESSAGE_LMSYS, ClaudeCompletion
 from sampler.o_chat_completion_sampler import OChatCompletionSampler
 from simpleqa_eval import SimpleQAEval
 
+# Load environment variables
 load_dotenv()
 
+# Initialize Typer app
+app = typer.Typer()
 
-def main():
-    parser = argparse.ArgumentParser(
-        description="Run sampling and evaluations using different samplers and evaluations."
-    )
-    parser.add_argument(
-        "--list-models", action="store_true", help="List available models"
-    )
-    parser.add_argument("--model", type=str, help="Select a model by name")
-    parser.add_argument("--debug", action="store_true", help="Run in debug mode")
-    parser.add_argument(
-        "--examples", type=int, help="Number of examples to use (overrides default)"
-    )
 
-    args = parser.parse_args()
-
-    models = {
+def get_available_models() -> Dict[str, ChatCompletionSampler]:
+    """Return dictionary of available models and their samplers."""
+    return {
         # chatgpt models:
         "gpt-4o-2024-11-20_assistant": ChatCompletionSampler(
             model="gpt-4o-2024-11-20",
@@ -99,120 +92,180 @@ def main():
             model="claude-3-opus-20240229",
             system_message=CLAUDE_SYSTEM_MESSAGE_LMSYS,
         ),
-        # llama models
+        # Llama 3 models
         "llama-3-8b": ChatCompletionSampler(
             model="llama-3-8b",
             system_message=OPENAI_SYSTEM_MESSAGE_API,
             max_tokens=2048,
         ),
+        "llama-3.3-70b": ChatCompletionSampler(
+            model="llama-3.3-70b",
+            system_message=OPENAI_SYSTEM_MESSAGE_API,
+            max_tokens=2048,
+        ),
+        # Qwen 2.5 models
+        "qwen-2.5-32b": ChatCompletionSampler(
+            model="qwen-2.5-32b",
+            system_message=OPENAI_SYSTEM_MESSAGE_API,
+            max_tokens=2048,
+        ),
+        # DeepSeek R1 models
+        "deepseek-r1-llama-8b": OChatCompletionSampler(
+            model="deepseek-r1-llama-8b",
+        ),
+        "deepseek-r1-llama-70b": OChatCompletionSampler(
+            model="deepseek-r1-llama-70b",
+        ),
+        "deepseek-r1-qwen-32b": OChatCompletionSampler(
+            model="deepseek-r1-qwen-32b",
+        ),
     }
 
-    if args.list_models:
-        print("Available models:")
-        for model_name in models.keys():
-            print(f" - {model_name}")
-        return
 
-    if args.model:
-        if args.model not in models:
-            print(f"Error: Model '{args.model}' not found.")
-            return
-        models = {args.model: models[args.model]}
+def get_available_benchmarks() -> list[str]:
+    return [
+        # "simpleqa",
+        # "mmlu",
+        # "math",
+        "gpqa",
+        # "mgsm",
+        "drop",
+        # "humaneval",
+    ]
 
-    # grading_sampler = ChatCompletionSampler(model="gpt-4o")
-    # equality_checker = ChatCompletionSampler(model="gpt-4-turbo-preview")
 
+def get_eval_instance(
+    eval_name: str, debug_mode: bool, num_examples: Optional[int] = None
+) -> any:
+    """Get evaluation instance based on name and parameters."""
     grading_sampler = ChatCompletionSampler(model="llama-3.3-70b")
     equality_checker = ChatCompletionSampler(model="llama-3.3-70b")
-    # ^^^ used for fuzzy matching, just for math
 
-    def get_evals(eval_name, debug_mode):
-        num_examples = (
-            args.examples if args.examples is not None else (5 if debug_mode else None)
-        )
-        # Set num_examples = None to reproduce full evals
-        match eval_name:
-            case "mmlu":
-                return MMLUEval(num_examples=1 if debug_mode else num_examples)
-            case "math":
-                return MathEval(
-                    equality_checker=equality_checker,
-                    num_examples=num_examples,
-                    n_repeats=1 if debug_mode else 10,
-                )
-            case "gpqa":
-                return GPQAEval(
-                    n_repeats=1 if debug_mode else 10, num_examples=num_examples
-                )
-            case "mgsm":
-                return MGSMEval(num_examples_per_lang=10 if debug_mode else 250)
-            case "drop":
-                return DropEval(
-                    num_examples=10 if debug_mode else num_examples,
-                    train_samples_per_prompt=3,
-                )
-            case "humaneval":
-                return HumanEval(num_examples=10 if debug_mode else num_examples)
-            case "simpleqa":
-                return SimpleQAEval(
-                    grader_model=grading_sampler,
-                    num_examples=10 if debug_mode else num_examples,
-                )
-            case _:
-                raise Exception(f"Unrecognized eval type: {eval_name}")
+    examples = num_examples if num_examples is not None else (5 if debug_mode else None)
 
-    evals = {
-        eval_name: get_evals(eval_name, args.debug)
-        for eval_name in [
-            # "simpleqa",
-            # "mmlu",
-            # "math",
-            "gpqa",
-            # "mgsm",
-            "drop",
-            # "humaneval",
-        ]
+    eval_configs = {
+        "mmlu": lambda: MMLUEval(num_examples=1 if debug_mode else examples),
+        "math": lambda: MathEval(
+            equality_checker=equality_checker,
+            num_examples=examples,
+            n_repeats=1 if debug_mode else 10,
+        ),
+        "gpqa": lambda: GPQAEval(
+            n_repeats=1 if debug_mode else 10, num_examples=examples
+        ),
+        "mgsm": lambda: MGSMEval(num_examples_per_lang=10 if debug_mode else 250),
+        "drop": lambda: DropEval(
+            num_examples=10 if debug_mode else examples,
+            train_samples_per_prompt=3,
+        ),
+        "humaneval": lambda: HumanEval(num_examples=10 if debug_mode else examples),
+        "simpleqa": lambda: SimpleQAEval(
+            grader_model=grading_sampler,
+            num_examples=10 if debug_mode else examples,
+        ),
     }
-    print(evals)
-    debug_suffix = "_DEBUG" if args.debug else ""
-    print(debug_suffix)
-    mergekey2resultpath = {}
-    for model_name, sampler in models.items():
-        for eval_name, eval_obj in evals.items():
-            result = eval_obj(sampler)
-            # ^^^ how to use a sampler
-            file_stem = f"{eval_name}_{model_name}"
-            report_filename = f"tmp/{file_stem}{debug_suffix}.html"
-            print(f"Writing report to {report_filename}")
-            with open(report_filename, "w") as fh:
-                fh.write(common.make_report(result))
-            metrics = result.metrics | {"score": result.score}
-            print(metrics)
-            result_filename = f"tmp/{file_stem}{debug_suffix}.json"
-            with open(result_filename, "w") as f:
-                f.write(json.dumps(metrics, indent=2))
-            print(f"Writing results to {result_filename}")
-            mergekey2resultpath[f"{file_stem}"] = result_filename
+
+    if eval_name not in eval_configs:
+        raise ValueError(f"Unrecognized eval type: {eval_name}")
+
+    return eval_configs[eval_name]()
+
+
+def write_results(
+    result: any, eval_name: str, model_name: str, debug_suffix: str
+) -> str:
+    """Write evaluation results to files and return result filename."""
+    tmp_dir = Path("tmp")
+    tmp_dir.mkdir(exist_ok=True)
+
+    file_stem = f"{eval_name}_{model_name}"
+    report_filename = tmp_dir / f"{file_stem}{debug_suffix}.html"
+    result_filename = tmp_dir / f"{file_stem}{debug_suffix}.json"
+
+    # Write HTML report
+    report_filename.write_text(common.make_report(result))
+    typer.echo(f"Writing report to {report_filename}")
+
+    # Write JSON metrics
+    metrics = result.metrics | {"score": result.score}
+    result_filename.write_text(json.dumps(metrics, indent=2))
+    typer.echo(f"Writing results to {result_filename}")
+
+    return str(result_filename)
+
+
+def create_results_dataframe(mergekey2resultpath: Dict[str, str]) -> pd.DataFrame:
+    """Create and return a DataFrame from evaluation results."""
     merge_metrics = []
+
     for eval_model_name, result_filename in mergekey2resultpath.items():
         try:
-            result = json.load(open(result_filename, "r+"))
+            with open(result_filename) as f:
+                result = json.load(f)
         except Exception as e:
-            print(e, result_filename)
+            typer.echo(f"Error loading {result_filename}: {e}")
             continue
+
         result = result.get("f1_score", result.get("score", None))
-        eval_name = eval_model_name[: eval_model_name.find("_")]
-        model_name = eval_model_name[eval_model_name.find("_") + 1 :]
+        eval_name, model_name = eval_model_name.split("_", 1)
+
         merge_metrics.append(
             {"eval_name": eval_name, "model_name": model_name, "metric": result}
         )
-    merge_metrics_df = pd.DataFrame(merge_metrics).pivot(
-        index=["model_name"], columns="eval_name"
-    )
-    print("\nAll results: ")
-    print(merge_metrics_df.to_markdown())
-    return merge_metrics
+
+    return pd.DataFrame(merge_metrics).pivot(index=["model_name"], columns="eval_name")
+
+
+@app.command()
+def list_models():
+    """List all available models."""
+    models = get_available_models()
+    typer.echo("Available models:")
+    for model_name in models:
+        typer.echo(f" - {model_name}")
+
+
+@app.command()
+def run(
+    model: Optional[str] = typer.Option(None, help="Specify a model by name"),
+    debug: bool = typer.Option(False, help="Run in debug mode"),
+    n_examples: Optional[int] = typer.Option(
+        None, "-n", help="Number of examples to use (overrides default)"
+    ),
+):
+    """Run sampling and evaluations using different samplers and evaluations."""
+    models = get_available_models()
+
+    if model:
+        if model not in models:
+            typer.echo(f"Error: Model '{model}' not found.")
+            raise typer.Exit(1)
+        models = {model: models[model]}
+
+    benchmarks = get_available_benchmarks()
+
+    evals = {
+        benchmark: get_eval_instance(benchmark, debug, n_examples)
+        for benchmark in benchmarks
+    }
+
+    debug_suffix = "_DEBUG" if debug else ""
+    mergekey2resultpath = {}
+
+    # Run evaluations
+    for model_name, sampler in models.items():
+        for eval_name, eval_obj in evals.items():
+            result = eval_obj(sampler)
+            result_filename = write_results(result, eval_name, model_name, debug_suffix)
+            mergekey2resultpath[f"{eval_name}_{model_name}"] = result_filename
+
+    # Create and display results table
+    merge_metrics_df = create_results_dataframe(mergekey2resultpath)
+    typer.echo("\nAll results:")
+    typer.echo(merge_metrics_df.to_markdown())
+
+    return merge_metrics_df
 
 
 if __name__ == "__main__":
-    main()
+    app()
