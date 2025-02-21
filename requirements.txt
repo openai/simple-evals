@@ -8,3 +8,4 @@ python-dotenv
 tabulate
 tqdm
 numpy
+typer
