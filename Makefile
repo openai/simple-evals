@@ -1,4 +1,9 @@
 .PHONY: list-models
 list-models:
-	# add current path to python path
-	PYTHONPATH=$$(pwd) python3 simple_evals.py --list-models
+	PYTHONPATH=$$(pwd) python simple_evals.py --list-models
+
+
+.PHONY: eval-model
+eval-model:
+	PYTHONPATH=$$(pwd) python simple_evals.py --model $(model) --examples $(n)
+

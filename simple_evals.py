@@ -99,6 +99,12 @@ def main():
             model="claude-3-opus-20240229",
             system_message=CLAUDE_SYSTEM_MESSAGE_LMSYS,
         ),
+        # llama models
+        "llama-3-8b": ChatCompletionSampler(
+            model="llama-3-8b",
+            system_message=OPENAI_SYSTEM_MESSAGE_API,
+            max_tokens=2048,
+        ),
     }
 
     if args.list_models:
@@ -155,13 +161,13 @@ def main():
     evals = {
         eval_name: get_evals(eval_name, args.debug)
         for eval_name in [
-            "simpleqa",
-            "mmlu",
-            "math",
-            "gpqa",
-            "mgsm",
+            # "simpleqa",
+            # "mmlu",
+            # "math",
+            # "gpqa",
+            # "mgsm",
             "drop",
-            "humaneval",
+            # "humaneval",
         ]
     }
     print(evals)
