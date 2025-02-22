@@ -24,7 +24,7 @@ class EvalResult:
     score: float | None  # top-line metric
     metrics: dict[str, float] | None  # other metrics
     htmls: list[str]  # strings of valid HTML
-    convos: list[MessageList]  # sampled conversations
+    results: list[dict[str, Any]]  # results of evaluating each sample
 
 
 @dataclass
@@ -36,7 +36,7 @@ class SingleEvalResult:
     score: float | None
     metrics: dict[str, float] = field(default_factory=dict)
     html: str | None = None
-    convo: MessageList | None = None  # sampled conversation
+    result: dict[str, Any] | None = None  # result of evaluating each sample
 
 
 class Eval:

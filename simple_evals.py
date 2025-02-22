@@ -1,6 +1,7 @@
 # add current folder to python path
-from pathlib import Path
 import sys
+from pathlib import Path
+
 sys.path.append(str(Path(__file__).parent))
 
 import json
@@ -131,15 +132,15 @@ def get_available_models() -> Dict[str, ChatCompletionSampler]:
     }
 
 
-def get_available_benchmarks() -> list[str]:
+def get_available_evals() -> list[str]:
     return [
-        # "simpleqa",
-        # "mmlu",
-        # "math",
-        # "gpqa",
-        # "mgsm",
+        "simpleqa",
+        "mmlu",
+        "math",
+        "gpqa",
+        "mgsm",
         "drop",
-        # "humaneval",
+        "humaneval",
     ]
 
 
@@ -181,19 +182,23 @@ def write_results(result: any, eval_name: str, model_name: str, output_dir: Path
     output_dir.mkdir(exist_ok=True)
 
     file_stem = f"{eval_name}_{model_name}"
-    report_filename = output_dir / f"{file_stem}.html"
-    result_filename = output_dir / f"{file_stem}.json"
 
     # Write HTML report
+    report_filename = output_dir / f"{file_stem}-report.html"
     report_filename.write_text(common.make_report(result))
     typer.echo(f"Writing report to {report_filename}")
 
-    # Write JSON metrics
+    # Write metrics
+    metrics_filename = output_dir / f"{file_stem}-metrics.json"
     metrics = result.metrics | {"score": result.score}
-    result_filename.write_text(json.dumps(metrics, indent=2))
-    typer.echo(f"Writing results to {result_filename}")
+    metrics_filename.write_text(json.dumps(metrics, indent=2))
+    typer.echo(f"Writing results to {metrics_filename}")
 
-    return str(result_filename)
+    # Write results
+    results_filename = output_dir / f"{file_stem}-results.json"
+    results_filename.write_text(json.dumps(result.results, indent=2))
+    typer.echo(f"Writing results to {results_filename}")
+    return str(metrics_filename)
 
 
 def create_results_dataframe(mergekey2resultpath: Dict[str, str]) -> pd.DataFrame:
@@ -227,6 +232,7 @@ def list_models():
 
 @app.command()
 def run(
+    eval_name: str = typer.Argument(..., help="Specify an eval by name or 'all'"),
     model: Optional[str] = typer.Option(None, help="Specify a model by name"),
     n_examples: Optional[int] = typer.Option(None, "-n", help="Number of examples to use (overrides default)"),
     out: Path = typer.Option(default=Path("tmp/"), help="Output directory"),
@@ -241,15 +247,16 @@ def run(
             raise typer.Exit(1)
         models = {model: models[model]}
 
-    benchmarks = get_available_benchmarks()
-
-    evals = {benchmark: get_eval_instance(benchmark, debug, n_examples) for benchmark in benchmarks}
+    if eval_name == "all":
+        eval_map = {eval_name: get_eval_instance(eval_name, debug, n_examples) for eval_name in get_available_evals()}
+    else:
+        eval_map = {eval_name: get_eval_instance(eval_name, debug, n_examples)}
 
     mergekey2resultpath = {}
 
     # Run evaluations
     for model_name, sampler in models.items():
-        for eval_name, eval_obj in evals.items():
+        for eval_name, eval_obj in eval_map.items():
             result = eval_obj(sampler)
             result_filename = write_results(result, eval_name, model_name, out)
             mergekey2resultpath[f"{eval_name}_{model_name}"] = result_filename

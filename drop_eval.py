@@ -11,6 +11,7 @@ import re
 import string
 from typing import Any, Dict, List, Optional, Set, Tuple, Union
 
+import logfire
 import numpy as np
 from scipy.optimize import linear_sum_assignment
 
@@ -59,8 +60,7 @@ def _normalize_answer(text: str) -> str:
     """Lower text and remove punctuation, articles and extra whitespace."""
 
     parts = [
-        _white_space_fix(_remove_articles(_normalize_number(_remove_punc(_lower(token)))))
-        for token in _tokenize(text)
+        _white_space_fix(_remove_articles(_normalize_number(_remove_punc(_lower(token))))) for token in _tokenize(text)
     ]
     parts = [part for part in parts if part.strip()]
     normalized = " ".join(parts).strip()
@@ -82,9 +82,7 @@ def _normalize_number(text: str) -> str:
         return text
 
 
-def _answer_to_bags(
-    answer: Union[str, List[str], Tuple[str, ...]]
-) -> Tuple[List[str], List[Set[str]]]:
+def _answer_to_bags(answer: Union[str, List[str], Tuple[str, ...]]) -> Tuple[List[str], List[Set[str]]]:
     if isinstance(answer, (list, tuple)):
         raw_spans = answer
     else:
@@ -126,11 +124,7 @@ def _compute_f1(predicted_bag: Set[str], gold_bag: Set[str]) -> float:
         recall = 1.0
     else:
         recall = intersection / float(len(gold_bag))
-    f1 = (
-        (2 * precision * recall) / (precision + recall)
-        if not (precision == 0.0 and recall == 0.0)
-        else 0.0
-    ) * 100
+    f1 = ((2 * precision * recall) / (precision + recall) if not (precision == 0.0 and recall == 0.0) else 0.0) * 100
     return f1
 
 
@@ -184,18 +178,12 @@ def answer_json_to_strings(answer: Dict[str, Any]) -> Tuple[Tuple[str, ...], str
     elif "date" in answer:
         return (
             tuple(
-                [
-                    "{0} {1} {2}".format(
-                        answer["date"]["day"], answer["date"]["month"], answer["date"]["year"]
-                    ).strip()
-                ]
+                ["{0} {1} {2}".format(answer["date"]["day"], answer["date"]["month"], answer["date"]["year"]).strip()]
             ),
             "date",
         )
     else:
-        raise ValueError(
-            f"Answer type not found, should be one of number, spans or date at: {json.dumps(answer)}"
-        )
+        raise ValueError(f"Answer type not found, should be one of number, spans or date at: {json.dumps(answer)}")
 
 
 def answer_json_to_string(answer_json):
@@ -238,24 +226,19 @@ class DropEval(Eval):
         self.seed = 42
         self._num_examples = num_examples
         self._train_samples_per_prompt = train_samples_per_prompt
-        self.train_jsonl = (
-            "https://openaipublic.blob.core.windows.net/simple-evals/drop_v0_train.jsonl.gz"
-        )
-        self.test_jsonl = (
-            "https://openaipublic.blob.core.windows.net/simple-evals/drop_v0_dev.jsonl.gz"
-        )
+        self.train_jsonl = "https://openaipublic.blob.core.windows.net/simple-evals/drop_v0_train.jsonl.gz"
+        self.test_jsonl = "https://openaipublic.blob.core.windows.net/simple-evals/drop_v0_dev.jsonl.gz"
         with gzip.GzipFile(fileobj=common.url_to_fileobj(self.train_jsonl, binary=True), mode="rb") as f:
             self.train_samples = list(map(json.loads, f.readlines()))
         with gzip.GzipFile(fileobj=common.url_to_fileobj(self.test_jsonl, binary=True), mode="rb") as f:
             self.test_samples = list(map(json.loads, f.readlines()))
             if self._num_examples:
-                self.test_samples = random.Random(self.seed).sample(
-                    self.test_samples, self._num_examples
-                )
+                self.test_samples = random.Random(self.seed).sample(self.test_samples, self._num_examples)
 
     def __call__(self, sampler: SamplerBase) -> EvalResult:
         rng = random.Random(self.seed)
 
+        @logfire.instrument("Answering question in DROP dataset")
         def fn(example: dict[str, str]):
             stuffing = rng.sample(self.train_samples, self._train_samples_per_prompt)
 
@@ -284,13 +267,8 @@ Think step by step, then write a line of the form "Answer: $ANSWER" at the end o
                     match = re.search(ANSWER_PATTERN, response_text)
                     extracted_answer = match.group(1) if match else response_text
                     em_score, f1_score = drop_metric(extracted_answer, correct_answers)
-                    matches = [
-                        fuzzy_match(extracted_answer, correct_answer)
-                        for correct_answer in correct_answers
-                    ]
-                    extracted_answers = [
-                        extracted_answer for i in range(len(correct_answers)) if matches[i]
-                    ]
+                    matches = [fuzzy_match(extracted_answer, correct_answer) for correct_answer in correct_answers]
+                    extracted_answers = [extracted_answer for i in range(len(correct_answers)) if matches[i]]
                     score = True in matches
                     html = common.jinja_env.from_string(HTML_JINJA).render(
                         prompt_messages=prompt_messages,
@@ -300,11 +278,12 @@ Think step by step, then write a line of the form "Answer: $ANSWER" at the end o
                         extracted_answer=extracted_answers,
                     )
                     convo = prompt_messages + [dict(content=extracted_answer, role="assistant")]
+                    metrics = {"em_score": em_score, "f1_score": f1_score}
                     return SingleEvalResult(
                         html=html,
                         score=score,
-                        convo=convo,
-                        metrics={"em_score": em_score, "f1_score": f1_score},
+                        metrics=metrics,
+                        result=dict(example=example, convo=convo, metrics=metrics),
                     )
 
         results = common.map_with_progress(fn, self.test_samples)

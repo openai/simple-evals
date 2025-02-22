@@ -1,9 +1,9 @@
+import io
 import os
 from collections import defaultdict
 from multiprocessing.pool import ThreadPool
 from typing import Any
 
-import io
 import jinja2
 import numpy as np
 import requests
@@ -24,9 +24,7 @@ D) {D}
 
 ANSWER_PATTERN_MULTICHOICE = r"(?i)Answer[ \t]*:[ \t]*\$?([A-D])\$?"
 ANSWER_PATTERN = r"(?i)Answer\s*:\s*([^\n]+)"
-MULTILINGUAL_ANSWER_PATTERN_TEMPLATE = (
-    "(?i){}[ \t]*([A-D]|[أ-د]|[অ]|[ব]|[ড]|[ঢ]|[Ａ]|[Ｂ]|[Ｃ]|[Ｄ])"
-)
+MULTILINGUAL_ANSWER_PATTERN_TEMPLATE = "(?i){}[ \t]*([A-D]|[أ-د]|[অ]|[ব]|[ড]|[ঢ]|[Ａ]|[Ｂ]|[Ｃ]|[Ｄ])"
 # All the different ways "Answer" is written in different languages
 MULTILINGUAL_ANSWER_REGEXES = [
     "Answer\s*:",
@@ -183,14 +181,14 @@ def aggregate_results(
     name2stats = name2stats or {}
     name2values = defaultdict(list)
     htmls = []
-    convos = []
+    results = []
     for single_eval_result in single_eval_results:
         for name, value in single_eval_result.metrics.items():
             name2values[name].append(value)
         if single_eval_result.score is not None:
             name2values["score"].append(single_eval_result.score)
         htmls.append(single_eval_result.html)
-        convos.append(single_eval_result.convo)
+        results.append(single_eval_result.result)
     final_metrics = {}
     for name, values in name2values.items():
         stats = name2stats.get(name, default_stats)
@@ -198,7 +196,10 @@ def aggregate_results(
             key = name if stat == "mean" else f"{name}:{stat}"
             final_metrics[key] = _compute_stat(values, stat)
     return EvalResult(
-        score=final_metrics.pop("score", None), metrics=final_metrics, htmls=htmls, convos=convos
+        score=final_metrics.pop("score", None),
+        metrics=final_metrics,
+        htmls=htmls,
+        results=results,
     )
 
 
@@ -326,6 +327,7 @@ def make_report_from_example_htmls(htmls: list[str]):
     """
     return jinja_env.from_string(_report_template).render(score=None, metrics={}, htmls=htmls)
 
+
 def normalize_response(response: str) -> str:
     """
     Normalize the response by removing markdown and LaTeX formatting that may prevent a match.
@@ -346,6 +348,7 @@ def normalize_response(response: str) -> str:
         .replace("{", "")
         .replace("\\boxed", "")
     )
+
 
 def normalize_extracted_answer(extracted_answer: str) -> str:
     return (

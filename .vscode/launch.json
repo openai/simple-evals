@@ -1,0 +1,23 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Evaluate",
+            "type": "debugpy",
+            "justMyCode": false,
+            "request": "launch",
+            "program": "simple_evals.py",
+            "console": "integratedTerminal",
+            "args": [
+                "run",
+                "drop",
+                "--model",
+                "llama-3-8b",
+                "-n",
+                "2",
+                "--out",
+                "./tmp/debug/"
+            ]
+        }
+    ]
+}
