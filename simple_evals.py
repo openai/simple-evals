@@ -1,7 +1,12 @@
-import json
+# add current folder to python path
 from pathlib import Path
+import sys
+sys.path.append(str(Path(__file__).parent))
+
+import json
 from typing import Dict, Optional
 
+import logfire
 import pandas as pd
 import typer
 from dotenv import load_dotenv
@@ -24,6 +29,10 @@ from simpleqa_eval import SimpleQAEval
 
 # Load environment variables
 load_dotenv()
+
+# Configure logfire
+logfire.configure()
+logfire.instrument_openai()
 
 # Initialize Typer app
 app = typer.Typer()
@@ -127,16 +136,14 @@ def get_available_benchmarks() -> list[str]:
         # "simpleqa",
         # "mmlu",
         # "math",
-        "gpqa",
+        # "gpqa",
         # "mgsm",
         "drop",
         # "humaneval",
     ]
 
 
-def get_eval_instance(
-    eval_name: str, debug_mode: bool, num_examples: Optional[int] = None
-) -> any:
+def get_eval_instance(eval_name: str, debug_mode: bool, num_examples: Optional[int] = None) -> any:
     """Get evaluation instance based on name and parameters."""
     grading_sampler = ChatCompletionSampler(model="llama-3.3-70b")
     equality_checker = ChatCompletionSampler(model="llama-3.3-70b")
@@ -150,9 +157,7 @@ def get_eval_instance(
             num_examples=examples,
             n_repeats=1 if debug_mode else 10,
         ),
-        "gpqa": lambda: GPQAEval(
-            n_repeats=1 if debug_mode else 10, num_examples=examples
-        ),
+        "gpqa": lambda: GPQAEval(n_repeats=1 if debug_mode else 10, num_examples=examples),
         "mgsm": lambda: MGSMEval(num_examples_per_lang=10 if debug_mode else 250),
         "drop": lambda: DropEval(
             num_examples=10 if debug_mode else examples,
@@ -171,16 +176,13 @@ def get_eval_instance(
     return eval_configs[eval_name]()
 
 
-def write_results(
-    result: any, eval_name: str, model_name: str, debug_suffix: str
-) -> str:
+def write_results(result: any, eval_name: str, model_name: str, output_dir: Path) -> str:
     """Write evaluation results to files and return result filename."""
-    tmp_dir = Path("tmp")
-    tmp_dir.mkdir(exist_ok=True)
+    output_dir.mkdir(exist_ok=True)
 
     file_stem = f"{eval_name}_{model_name}"
-    report_filename = tmp_dir / f"{file_stem}{debug_suffix}.html"
-    result_filename = tmp_dir / f"{file_stem}{debug_suffix}.json"
+    report_filename = output_dir / f"{file_stem}.html"
+    result_filename = output_dir / f"{file_stem}.json"
 
     # Write HTML report
     report_filename.write_text(common.make_report(result))
@@ -209,9 +211,7 @@ def create_results_dataframe(mergekey2resultpath: Dict[str, str]) -> pd.DataFram
         result = result.get("f1_score", result.get("score", None))
         eval_name, model_name = eval_model_name.split("_", 1)
 
-        merge_metrics.append(
-            {"eval_name": eval_name, "model_name": model_name, "metric": result}
-        )
+        merge_metrics.append({"eval_name": eval_name, "model_name": model_name, "metric": result})
 
     return pd.DataFrame(merge_metrics).pivot(index=["model_name"], columns="eval_name")
 
@@ -228,10 +228,9 @@ def list_models():
 @app.command()
 def run(
     model: Optional[str] = typer.Option(None, help="Specify a model by name"),
+    n_examples: Optional[int] = typer.Option(None, "-n", help="Number of examples to use (overrides default)"),
+    out: Path = typer.Option(default=Path("tmp/"), help="Output directory"),
     debug: bool = typer.Option(False, help="Run in debug mode"),
-    n_examples: Optional[int] = typer.Option(
-        None, "-n", help="Number of examples to use (overrides default)"
-    ),
 ):
     """Run sampling and evaluations using different samplers and evaluations."""
     models = get_available_models()
@@ -244,19 +243,15 @@ def run(
 
     benchmarks = get_available_benchmarks()
 
-    evals = {
-        benchmark: get_eval_instance(benchmark, debug, n_examples)
-        for benchmark in benchmarks
-    }
+    evals = {benchmark: get_eval_instance(benchmark, debug, n_examples) for benchmark in benchmarks}
 
-    debug_suffix = "_DEBUG" if debug else ""
     mergekey2resultpath = {}
 
     # Run evaluations
     for model_name, sampler in models.items():
         for eval_name, eval_obj in evals.items():
             result = eval_obj(sampler)
-            result_filename = write_results(result, eval_name, model_name, debug_suffix)
+            result_filename = write_results(result, eval_name, model_name, out)
             mergekey2resultpath[f"{eval_name}_{model_name}"] = result_filename
 
     # Create and display results table

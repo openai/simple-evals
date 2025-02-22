@@ -9,3 +9,4 @@ tabulate
 tqdm
 numpy
 typer
+logfire
