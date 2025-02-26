@@ -89,6 +89,11 @@ def main():
             system_message=OPENAI_SYSTEM_MESSAGE_API,
             max_tokens=2048,
         ),
+        "gpt-4.5-preview-2025-02-27": ChatCompletionSampler(
+            model="gpt-4.5-preview-2025-02-27",
+            system_message=OPENAI_SYSTEM_MESSAGE_API,
+            max_tokens=2048,
+        ), 
         # claude models:
         "claude-3-opus-20240229_empty": ClaudeCompletionSampler(
             model="claude-3-opus-20240229",
