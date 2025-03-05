@@ -104,9 +104,10 @@ class MMLUEval(Eval):
             extracted_answer = None
             for answer_regex in MULTILINGUAL_ANSWER_REGEXES:
                 regex = MULTILINGUAL_ANSWER_PATTERN_TEMPLATE.format(answer_regex)
-                match = re.search(regex, response_text)
-                if match:
-                    extracted_answer = normalize_extracted_answer(match.group(1))
+                matches = re.findall(regex, response_text)
+                if matches:
+                    match = matches[-1]
+                    extracted_answer = normalize_extracted_answer(match)
                     break
             score = 1.0 if extracted_answer == row["Answer"] else 0.0
             html = common.jinja_env.from_string(HTML_JINJA).render(
