@@ -183,7 +183,7 @@ class SimpleQAEval(Eval):
                     if (aggregate_metrics["accuracy_given_attempted"] + aggregate_metrics["is_correct"]) > 0
                     else 0
                 ),
-                "F-score": (
+                "f-score": (
                     2 * aggregate_metrics["is_correct"]
                     / (2 * aggregate_metrics["is_correct"] +
                        2 * aggregate_metrics["is_incorrect"] +
