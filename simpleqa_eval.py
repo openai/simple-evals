@@ -182,11 +182,18 @@ class SimpleQAEval(Eval):
                     / (aggregate_metrics["accuracy_given_attempted"] + aggregate_metrics["is_correct"])
                     if (aggregate_metrics["accuracy_given_attempted"] + aggregate_metrics["is_correct"]) > 0
                     else 0
+                ),
+                "F-score": (
+                    2 * aggregate_metrics["is_correct"]
+                    / (2 * aggregate_metrics["is_correct"] +
+                       2 * aggregate_metrics["is_incorrect"] +
+                       aggregate_metrics["is_not_attempted"])
                 )
             }
             
             print(f"Accuracy Given Attempted: {output_d['accuracy_given_attempted']:.3f}")
             print(f"F1 Score: {output_d['f1']:.3f}")
+            print(f"F-Score: {output_d['f-score']:.3f}")
             
             return common.aggregate_results(results)
     
