@@ -8,6 +8,7 @@ from .humaneval_eval import HumanEval
 from .math_eval import MathEval
 from .mgsm_eval import MGSMEval
 from .mmlu_eval import MMLUEval
+from .aime_eval import AiMEEval
 from .simpleqa_eval import SimpleQAEval
 from .sampler.chat_completion_sampler import (
     OPENAI_SYSTEM_MESSAGE_API,
@@ -149,12 +150,18 @@ def main():
                     grader_model=grading_sampler,
                     num_examples=10 if debug_mode else num_examples,
                 )
+            case "aime":
+                return AiMEEval(
+                    equality_checker=equality_checker,
+                    num_examples=num_examples,
+                    n_repeats=1 if debug_mode else 10,
+                )
             case _:
                 raise Exception(f"Unrecognized eval type: {eval_name}")
 
     evals = {
         eval_name: get_evals(eval_name, args.debug)
-        for eval_name in ["simpleqa", "mmlu", "math", "gpqa", "mgsm", "drop", "humaneval"]
+        for eval_name in ["aime", "simpleqa", "mmlu", "math", "gpqa", "mgsm", "drop", "humaneval"]
     }
     print(evals)
     debug_suffix = "_DEBUG" if args.debug else ""
