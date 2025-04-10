@@ -4,6 +4,8 @@ Authors: Jason Wei, Zhiqing Sun, Spencer Papay, Scott McKinney, Jeffrey Han, Isa
 https://openai.com/index/browsecomp/
 """ 
 
+import base64
+import hashlib
 import random
 import re
 import pandas
@@ -45,6 +47,22 @@ confidence: The extracted confidence score between 0|\%| and 100|\%| from [respo
 CHOICE_STRINGS = ["yes", "no"]
 
 
+def derive_key(password: str, length: int) -> bytes:
+    """Derive a fixed-length key from the password using SHA256."""
+    hasher = hashlib.sha256()
+    hasher.update(password.encode())
+    key = hasher.digest()
+    return key * (length // len(key)) + key[: length % len(key)]
+
+
+def decrypt(ciphertext_b64: str, password: str) -> str:
+    """Decrypt base64-encoded ciphertext with XOR."""
+    encrypted = base64.b64decode(ciphertext_b64)
+    key = derive_key(password, len(encrypted))
+    decrypted = bytes(a ^ b for a, b in zip(encrypted, key))
+    return decrypted.decode()
+
+
 class BrowseCompEval(Eval):
     def __init__(self, grader_model: SamplerBase, num_examples: int | None = None, n_repeats: int = 1):
         df = pandas.read_csv(
@@ -75,12 +93,14 @@ class BrowseCompEval(Eval):
 
     def __call__(self, sampler: SamplerBase) -> EvalResult:
             def fn(row: dict):
+                problem = decrypt(row.get("problem", ""), row.get("canary", ""))
+                answer = decrypt(row.get("answer", ""), row.get("canary", ""))
                 prompt_messages = [
-                    sampler._pack_message(content=QUERY_TEMPLATE.format(Question=row.get("problem")), role="user")
+                    sampler._pack_message(content=QUERY_TEMPLATE.format(Question=problem), role="user")
                 ]
                 response_text = sampler(prompt_messages)
-                grade_result = self.grade_sample(row.get("problem", ""), row.get("answer", ""), response_text)
-                
+                grade_result = self.grade_sample(problem, answer, response_text)
+
                 # Metrics based on grading response
                 is_correct = grade_result == "yes"
                 is_incorrect = grade_result == "no"
@@ -120,5 +140,3 @@ class BrowseCompEval(Eval):
             print(f"Accuracy: {output_d['accuracy']:.3f}")
             
             return common.aggregate_results(results)
-    
-
