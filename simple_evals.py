@@ -2,6 +2,7 @@ import json
 import argparse
 import pandas as pd
 from . import common
+from .browsecomp_eval import BrowseCompEval
 from .drop_eval import DropEval
 from .gpqa_eval import GPQAEval
 from .humaneval_eval import HumanEval
@@ -149,12 +150,17 @@ def main():
                     grader_model=grading_sampler,
                     num_examples=10 if debug_mode else num_examples,
                 )
+            case "browsecomp":
+                return BrowseCompEval(
+                    grader_model=grading_sampler,
+                    num_examples=10 if debug_mode else num_examples,
+                )
             case _:
                 raise Exception(f"Unrecognized eval type: {eval_name}")
 
     evals = {
         eval_name: get_evals(eval_name, args.debug)
-        for eval_name in ["simpleqa", "mmlu", "math", "gpqa", "mgsm", "drop", "humaneval"]
+        for eval_name in ["simpleqa", "mmlu", "math", "gpqa", "mgsm", "drop", "humaneval", "browsecomp"]
     }
     print(evals)
     debug_suffix = "_DEBUG" if args.debug else ""
