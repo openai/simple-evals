@@ -69,7 +69,7 @@ def main():
             max_tokens=2048,
         ),
         "gpt-4.1-nano": ChatCompletionSampler(
-            model="tmp-clover-ev3",
+            model="gpt-4.1-nano-2025-04-14",
             system_message=OPENAI_SYSTEM_MESSAGE_API,
             max_tokens=2048,
         ),
