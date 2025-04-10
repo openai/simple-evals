@@ -152,6 +152,7 @@ def main():
                 )
             case "browsecomp":
                 return BrowseCompEval(
+                    grader_model=grading_sampler,
                     num_examples=10 if debug_mode else num_examples,
                 )
             case _:

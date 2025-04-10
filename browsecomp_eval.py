@@ -58,11 +58,11 @@ class BrowseCompEval(Eval):
         self.examples = examples * n_repeats
         self.grader_model = grader_model
 
-    def grade_sample(self, question: str, target: str, predicted_answer: str) -> str:
+    def grade_sample(self, question: str, correct_answer: str, response: str) -> str:
         grader_prompt = GRADER_TEMPLATE.format(
             question=question,
-            target=target,
-            predicted_answer=predicted_answer,
+            correct_answer=correct_answer,
+            response=response,
         )
 
         prompt_messages = [
@@ -70,7 +70,7 @@ class BrowseCompEval(Eval):
         ]
         grading_response = self.grader_model(prompt_messages)
 
-        match = re.search(r"[correct_answer]: (yes|no)", grading_response)
+        match = re.search(r"correct: (yes|no)", grading_response)
         return match.group(0) if match else "no"  # Default to "no" if no match
 
     def __call__(self, sampler: SamplerBase) -> EvalResult:
