@@ -8,12 +8,6 @@ from openai import OpenAI
 
 from ..types import MessageList, SamplerBase
 
-OPENAI_SYSTEM_MESSAGE_API = "You are a helpful assistant."
-OPENAI_SYSTEM_MESSAGE_CHATGPT = (
-    "You are ChatGPT, a large language model trained by OpenAI, based on the GPT-4 architecture."
-    + "\nKnowledge cutoff: 2023-12\nCurrent date: 2024-04-01"
-)
-
 
 class ResponsesSampler(SamplerBase):
     """
@@ -22,7 +16,7 @@ class ResponsesSampler(SamplerBase):
 
     def __init__(
         self,
-        model: str = "gpt-4o",
+        model: str = "gpt-4.1",
         system_message: str | None = None,
         temperature: float = 0.5,
         max_tokens: int = 1024,

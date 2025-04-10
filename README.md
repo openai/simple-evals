@@ -6,19 +6,23 @@ We are open sourcing it so we can be transparent about the accuracy numbers we'r
 
 | Model                        | Prompt        | MMLU   | GPQA   | MATH   | HumanEval | MGSM[^5] | DROP[^5]<br>(F1, 3-shot) | SimpleQA 
 |:----------------------------:|:-------------:|:------:|:------:|:------:|:---------:|:------:|:--------------------------:|:---------:| 
-| **o3**                       |               |        |  [^9]  |        |           |        |                            |           |
-| o3-mini-high                 | n/a[^7]       |  86.9  |  77.2  |  97.9  |  97.6     |  92.0  |  80.6                      |  13.8     |
-| o3-mini[^10]                 | n/a           |  85.9  |  74.9  |  97.3  |  96.3     |  90.8  |  79.2                      |  13.4     |
-| o3-mini-low                  | n/a           |  84.9  |  67.6  |  95.8  |  94.5     |  55.1[^8]  |  77.6                  |  13.0     |
+**GPT-4.1**                   |               |        |        |        |           |        |                            |           |
+| gpt-4.1-2025-04-14            | assistant [^2]     |  90.2  |  66.3  |  82.1  |   94.5    |  86.9  |  79.4                      | 41.6 
+| gpt-4.1-mini-2025-04-14            | assistant     |  87.5  |  65.0  |  81.4  |   93.8    |  88.2  |  81.0                      | 16.8 
+| gpt-4.1-nano-2025-04-14            | assistant     |  80.1  |  50.3  |  62.3  |   87.0    |  73.0  |  82.2                      | 07.6
+| **o3**                       |               |        |  [^8]  |        |           |        |                            |           |
+| o3-mini-high                 | n/a       |  86.9  |  77.2  |  97.9  |  97.6     |  92.0  |  80.6                      |  13.8     |
+| o3-mini                 | n/a           |  85.9  |  74.9  |  97.3  |  96.3     |  90.8  |  79.2                      |  13.4     |
+| o3-mini-low                  | n/a           |  84.9  |  67.6  |  95.8  |  94.5     |  89.4  |  77.6                  |  13.0     |
 | **o1**                       |               |        |        | MATH-500[^6] |     |        |                            |           |
 | o1                           | n/a[^7]       |  91.8  |  75.7  |  96.4  |   n/a     |   89.3 |  90.2                      | 42.6    |
 | o1-preview                   | n/a           |  90.8  |  73.3  |  85.5  | 92.4 |  90.8  |  74.8                           | 42.4      | 
-| o1-mini                      | n/a           |  85.2  |  60.0  |  90.0  | 92.4 |  89.9  |  83.9                           | 7.6       |  
-| **GPT-4o**                   |               |        |        |        |           |        |                            |           |
+| o1-mini                      | n/a           |  85.2  |  60.0  |  90.0  | 92.4 |  89.9  |  83.9                           | 07.6       |  
+**GPT-4o**                   |               |        |        |        |           |        |                            |           |
 | gpt-4o-2024-11-20            | assistant     |  85.7  |  46.0  |  68.5  |   90.2    |  90.3  |  81.5                      | 38.8      |  
-| gpt-4o-2024-08-06            | assistant[^2] |  88.7  |  53.1  |  75.9  |   90.2    |  90.0  |  79.8                      | 40.1      |  
+| gpt-4o-2024-08-06            | assistant |  88.7  |  53.1  |  75.9  |   90.2    |  90.0  |  79.8                      | 40.1      |  
 | gpt-4o-2024-05-13            | assistant     |  87.2  |  49.9  |  76.6  |   91.0    |  89.9  |  83.7                      | 39.0      |
-| gpt-4o-mini-2024-07-18       | assistant     |  82.0  |  40.2  |  70.2  |   87.2    |  87.0  |  79.7                      | 9.5       | 
+| gpt-4o-mini-2024-07-18       | assistant     |  82.0  |  40.2  |  70.2  |   87.2    |  87.0  |  79.7                      | 09.5       | 
 **GPT-4.5-preview**                   |               |        |        |        |           |        |                            |           |
 | gpt-4.5-preview-2025-02-27            | assistant     |  90.8  |  69.5  |  87.1  |   88.6    |  86.9  |  83.4                      | 62.5
 | **GPT-4 Turbo and GPT-4**     |               |        |        |        |           |        |                           |           |
@@ -26,9 +30,9 @@ We are open sourcing it so we can be transparent about the accuracy numbers we'r
 | gpt-4-0125-preview           | assistant     |  85.4  |  41.4  |  64.5  |   86.6    |  85.1  |  81.5                      | n/a 
 | gpt-4-1106-preview           | assistant     |  84.7  |  42.5  |  64.3  |   83.7    |  87.1  |  83.2                      | n/a 
 | **Other Models (Reported)**   |               |        |        |        |           |        |                           |
-| [Claude 3.5 Sonnet](https://www.anthropic.com/news/claude-3-5-sonnet) | unknown |  88.3  |  59.4  |  71.1  |   92.0    | **`91.6`** | **`87.1`** |  28.9 | 
+| [Claude 3.5 Sonnet](https://www.anthropic.com/news/claude-3-5-sonnet) | unknown |  88.3  |  59.4  |  71.1  |   92.0    | 91.6 | 87.1 |  28.9 | 
 | [Claude 3 Opus](https://www.anthropic.com/news/claude-3-family) | unknown |  86.8  |  50.4  |  60.1  |   84.9    |   90.7   |  83.1 |  23.5 |                   
-| [Llama 3.1 405b](https://github.com/meta-llama/llama-models/blob/main/models/llama3_1/MODEL_CARD.md) | unknown |  88.6  |  50.7  |  73.8  |   89.0    | **`91.6`** |  84.8                   | n/a 
+| [Llama 3.1 405b](https://github.com/meta-llama/llama-models/blob/main/models/llama3_1/MODEL_CARD.md) | unknown |  88.6  |  50.7  |  73.8  |   89.0    | 91.6 |  84.8                   | n/a 
 | [Llama 3.1 70b](https://github.com/meta-llama/llama-models/blob/main/models/llama3_1/MODEL_CARD.md) | unknown |  82.0  |  41.7  |  68.0  |   80.5    |  86.9  |  79.6                   | n/a 
 | [Llama 3.1 8b](https://github.com/meta-llama/llama-models/blob/main/models/llama3_1/MODEL_CARD.md) | unknown |  68.4  |  30.4  |  51.9  |   72.6    |  68.9  |  59.5                   | n/a 
 | [Grok 2](https://x.ai/blog/grok-2) | unknown | 87.5 | 56.0 | 76.1 | 88.4 | n/a | n/a | n/a 
@@ -115,9 +119,8 @@ This will launch evaluations through the OpenAI API.
 [^5]:We believe these evals are saturated for our newer models, but are reporting them for completeness.
 [^6]:For o1 models, we evaluate on [MATH-500](https://github.com/openai/prm800k/tree/main/prm800k/math_splits), which is a newer, IID version of MATH.
 [^7]:o-series models do not support using a system prompt.
-[^8]:Low scores in non-latin languages like `be`, `tn`, `th`.
-[^9]:Includes an answer regex tweak for GPQA benchmark.
-[^10]:The default reasoning level for o3-mini is "medium".
+[^8]:Includes an answer regex tweak for GPQA benchmark.
+[^9]:The default reasoning level for o3-mini is "medium".
 
 ## Legal Stuff
 By contributing to evals, you are agreeing to make your evaluation logic and data under the same MIT license as this repository. You must have adequate rights to upload any data used in an eval. OpenAI reserves the right to use this data in future service improvements to our product. Contributions to OpenAI evals will be subject to our usual Usage Policies: https://platform.openai.com/docs/usage-policies.
