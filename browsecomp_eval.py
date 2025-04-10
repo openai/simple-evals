@@ -48,7 +48,7 @@ CHOICE_STRINGS = ["yes", "no"]
 class BrowseCompEval(Eval):
     def __init__(self, grader_model: SamplerBase, num_examples: int | None = None, n_repeats: int = 1):
         df = pandas.read_csv(
-            "/tmp/browse_comp_test_set.csv"
+            "https://openaipublic.blob.core.windows.net/simple-evals/browse_comp_test_set.csv"
         )
         examples = [row.to_dict() for _, row in df.iterrows()]
         if num_examples:
