@@ -4,7 +4,7 @@ Authors: Jason Wei, Zhiqing Sun, Spencer Papay, Scott McKinney, Jeffrey Han, Isa
 https://openai.com/index/browsecomp/
 """ 
 
-import random 
+import random
 import re
 import pandas
 from . import common
