@@ -156,10 +156,10 @@ class MGSMEval(Eval):
             language = example["lang"]
             latin_language = "group_latin" if language in LATIN_LANGUAGES else "group_non_latin"
             correct_answer = example["targets"]
-            instructoin = LANG_TO_INSTRUCTIONS[language]
+            instruction = LANG_TO_INSTRUCTIONS[language]
             prompt_messages = [
                 sampler._pack_message(
-                    content=instructoin.format(input=example["inputs"]), role="user"
+                    content=instruction.format(input=example["inputs"]), role="user"
                 )
             ]
             try:
