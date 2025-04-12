@@ -1,6 +1,7 @@
 import base64
 import time
 from typing import Any
+import os
 
 import openai
 from openai import OpenAI
@@ -29,8 +30,8 @@ class ResponsesSampler(SamplerBase):
         reasoning_effort: str | None = None,
     ):
         self.api_key_name = "OPENAI_API_KEY"
+        assert os.environ.get("OPENAI_API_KEY"), "Please set OPENAI_API_KEY"
         self.client = OpenAI()
-        # using api_key=os.environ.get("OPENAI_API_KEY")  # please set your API_KEY
         self.model = model
         self.system_message = system_message
         self.temperature = temperature
@@ -41,29 +42,27 @@ class ResponsesSampler(SamplerBase):
 
     def _handle_image(
         self, image: str, encoding: str = "base64", format: str = "png", fovea: int = 768
-    ):
+    ) -> dict[str, Any]:
         new_image = {
             "type": "input_image",
             "image_url": f"data:image/{format};{encoding},{image}",
         }
         return new_image
 
-    def _handle_text(self, text: str):
+    def _handle_text(self, text: str) -> dict[str, Any]:
         return {"type": "input_text", "text": text}
 
-    def _pack_message(self, role: str, content: Any):
-        return {"role": str(role), "content": content}
+    def _handle_message(self, role: str, content: Any) -> dict[str, Any]:
+        return {"role": role, "content": content}
 
     def __call__(self, message_list: MessageList) -> str:
         if self.system_message:
-            message_list = [self._pack_message("developer", self.system_message)] + message_list
+            message_list = [self._handle_message("developer", self.system_message)] + message_list
         trial = 0
         while True:
             try:
                 if self.reasoning_model:
-                    reasoning = None
-                    if self.reasoning_effort:
-                        reasoning = {"effort": self.reasoning_effort}
+                    reasoning = ({"effort": self.reasoning_effort} if self.reasoning_effort else None)
                     response = self.client.responses.create(
                         model=self.model,
                         input=message_list,
@@ -77,7 +76,6 @@ class ResponsesSampler(SamplerBase):
                         max_output_tokens=self.max_tokens,
                     )
                 return response.output_text
-            # NOTE: BadRequestError is triggered once for MMMU, please uncomment if you are reruning MMMU
             except openai.BadRequestError as e:
                 print("Bad Request Error", e)
                 return ""
