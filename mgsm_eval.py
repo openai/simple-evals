@@ -107,9 +107,10 @@ def score_mgsm(target: str, prediction: str) -> bool:
 def get_lang_examples(lang: str) -> list[dict[str, str]]:
     fpath = LANG_TO_FPATH[lang]
     examples = []
-    with common.url_to_fileobj(fpath, binary=False) as f:
-        for line in f:
-            inputs, targets = line.strip().split("\t")
+    with common.url_to_fileobj(fpath, binary=True) as f:
+        for raw_line in f:
+            line = raw_line.decode("utf-8").strip()
+            inputs, targets = line.split("\t")
             if "." in targets:
                 raise ValueError(f"targets {targets} contains a decimal point.")
             # targets = int(targets.replace(",", ""))
@@ -155,10 +156,10 @@ class MGSMEval(Eval):
             language = example["lang"]
             latin_language = "group_latin" if language in LATIN_LANGUAGES else "group_non_latin"
             correct_answer = example["targets"]
-            instructoin = LANG_TO_INSTRUCTIONS[language]
+            instruction = LANG_TO_INSTRUCTIONS[language]
             prompt_messages = [
                 sampler._pack_message(
-                    content=instructoin.format(input=example["inputs"]), role="user"
+                    content=instruction.format(input=example["inputs"]), role="user"
                 )
             ]
             try:
