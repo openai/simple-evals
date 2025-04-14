@@ -35,17 +35,7 @@ def main():
     args = parser.parse_args()
 
     models = {
-        # chatgpt models:
-        "gpt-4o-2024-11-20_assistant": ChatCompletionSampler(
-            model="gpt-4o-2024-11-20",
-            system_message=OPENAI_SYSTEM_MESSAGE_API,
-            max_tokens=2048,
-        ),
-        "gpt-4o-2024-11-20_chatgpt": ChatCompletionSampler(
-            model="gpt-4o-2024-11-20",
-            system_message=OPENAI_SYSTEM_MESSAGE_CHATGPT,
-            max_tokens=2048,
-        ),
+        # reasonsing models
         "o1": OChatCompletionSampler(
             model="o1",
         ),
@@ -67,35 +57,55 @@ def main():
             model="o3-mini",
             reasoning_effort="low",
         ),
-        "gpt-4-turbo-2024-04-09_assistant": ChatCompletionSampler(
+        # gpt 4.1 models
+        "gpt-4.1": ChatCompletionSampler(
+            model="gpt-4.1-2025-04-14",
+            system_message=OPENAI_SYSTEM_MESSAGE_API,
+            max_tokens=2048,
+        ),
+        "gpt-4.1-mini": ChatCompletionSampler(
+            model="gpt-4.1-mini-2025-04-14",
+            system_message=OPENAI_SYSTEM_MESSAGE_API,
+            max_tokens=2048,
+        ),
+        "gpt-4.1-nano": ChatCompletionSampler(
+            model="gpt-4.1-nano-2025-04-14",
+            system_message=OPENAI_SYSTEM_MESSAGE_API,
+            max_tokens=2048,
+        ),
+        # gpt 4o models
+        "gpt-4o": ChatCompletionSampler(
+            model="gpt-4o",
+            system_message=OPENAI_SYSTEM_MESSAGE_API,
+            max_tokens=2048,
+        ),
+        "gpt-4o-mini": ChatCompletionSampler(
+            model="gpt-4o-mini-2024-07-18",
+            system_message=OPENAI_SYSTEM_MESSAGE_API,
+            max_tokens=2048,
+        ),
+        # gpt 4.5 models
+        "gpt-4.5-preview": ChatCompletionSampler(
+            model="gpt-4.5-preview-2025-02-27",
+            system_message=OPENAI_SYSTEM_MESSAGE_API,
+            max_tokens=2048,
+        ),
+        # gpt 4 turbo models 
+         "gpt-4-turbo-2024-04-09": ChatCompletionSampler(
             model="gpt-4-turbo-2024-04-09",
             system_message=OPENAI_SYSTEM_MESSAGE_API,
+        ),
+        # chatgpt models:
+        "chatgpt-4o-latest": ChatCompletionSampler(
+            model="chatgpt-4o-latest",
+            system_message=OPENAI_SYSTEM_MESSAGE_CHATGPT,
+            max_tokens=2048,
         ),
         "gpt-4-turbo-2024-04-09_chatgpt": ChatCompletionSampler(
             model="gpt-4-turbo-2024-04-09",
             system_message=OPENAI_SYSTEM_MESSAGE_CHATGPT,
         ),
-        "gpt-4o_assistant": ChatCompletionSampler(
-            model="gpt-4o",
-            system_message=OPENAI_SYSTEM_MESSAGE_API,
-            max_tokens=2048,
-        ),
-        "gpt-4o_chatgpt": ChatCompletionSampler(
-            model="gpt-4o",
-            system_message=OPENAI_SYSTEM_MESSAGE_CHATGPT,
-            max_tokens=2048,
-        ),
-        "gpt-4o-mini-2024-07-18": ChatCompletionSampler(
-            model="gpt-4o-mini-2024-07-18",
-            system_message=OPENAI_SYSTEM_MESSAGE_API,
-            max_tokens=2048,
-        ),
-        "gpt-4.5-preview-2025-02-27": ChatCompletionSampler(
-            model="gpt-4.5-preview-2025-02-27",
-            system_message=OPENAI_SYSTEM_MESSAGE_API,
-            max_tokens=2048,
-        ), 
-        # claude models:
+       # claude models:
         "claude-3-opus-20240229_empty": ClaudeCompletionSampler(
             model="claude-3-opus-20240229",
             system_message=CLAUDE_SYSTEM_MESSAGE_LMSYS,
