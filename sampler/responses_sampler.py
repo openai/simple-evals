@@ -46,12 +46,12 @@ class ResponsesSampler(SamplerBase):
     def _handle_text(self, text: str) -> dict[str, Any]:
         return {"type": "input_text", "text": text}
 
-    def _handle_message(self, role: str, content: Any) -> dict[str, Any]:
+    def _pack_message(self, role: str, content: Any) -> dict[str, Any]:
         return {"role": role, "content": content}
 
     def __call__(self, message_list: MessageList) -> str:
         if self.system_message:
-            message_list = [self._handle_message("developer", self.system_message)] + message_list
+            message_list = [self._pack_message("developer", self.system_message)] + message_list
         trial = 0
         while True:
             try:
