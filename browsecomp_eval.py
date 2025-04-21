@@ -10,7 +10,7 @@ import random
 import re
 import pandas
 from . import common
-from .types import Eval, EvalResult, SamplerBase, SingleEvalResult
+from .eval_types import Eval, EvalResult, SamplerBase, SingleEvalResult
 
 # from: https://github.com/centerforaisafety/hle/blob/7b6be5aad6f9b43af3857de7867f3b52f6e4acb3/hle_eval/run_model_predictions.py#L11
 QUERY_TEMPLATE = """

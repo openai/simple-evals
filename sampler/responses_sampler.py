@@ -6,7 +6,7 @@ import os
 import openai
 from openai import OpenAI
 
-from ..types import MessageList, SamplerBase
+from ..eval_types import MessageList, SamplerBase
 
 
 class ResponsesSampler(SamplerBase):

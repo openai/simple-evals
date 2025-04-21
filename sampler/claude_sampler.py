@@ -2,7 +2,7 @@ import time
 
 import anthropic
 
-from ..types import MessageList, SamplerBase
+from ..eval_types import MessageList, SamplerBase
 
 CLAUDE_SYSTEM_MESSAGE_LMSYS = (
     "The assistant is Claude, created by Anthropic. The current date is "
