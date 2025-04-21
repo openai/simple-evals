@@ -16,6 +16,7 @@ from .sampler.chat_completion_sampler import (
     ChatCompletionSampler,
 )
 from .sampler.o_chat_completion_sampler import OChatCompletionSampler
+from .sampler.responses_sampler import ResponsesSampler
 from .sampler.claude_sampler import ClaudeCompletionSampler, CLAUDE_SYSTEM_MESSAGE_LMSYS
 
 
@@ -35,7 +36,36 @@ def main():
     args = parser.parse_args()
 
     models = {
-        # reasonsing models
+        # Reasoning Models
+        "o3": ResponsesSampler(
+            model="o3-2025-04-16",
+            reasoning_model=True,
+        ),
+        "o3_high": ResponsesSampler(
+            model="o3-2025-04-16",
+            reasoning_model=True,
+            reasoning_effort="high",
+        ),
+        "o3_low": ResponsesSampler(
+            model="o3-2025-04-16",
+            reasoning_model=True,
+            reasoning_effort="low",
+        ),
+        # Default == Medium
+        "o4-mini": ResponsesSampler(
+            model="o4-mini-2025-04-16",
+            reasoning_model=True,
+        ),
+        "o4-mini_high": ResponsesSampler(
+            model="o4-mini-2025-04-16",
+            reasoning_model=True,
+            reasoning_effort="high",
+        ),
+        "o4-mini_low": ResponsesSampler(
+            model="o4-mini-2025-04-16",
+            reasoning_model=True,
+            reasoning_effort="low",
+        ),
         "o1": OChatCompletionSampler(
             model="o1",
         ),
@@ -57,7 +87,7 @@ def main():
             model="o3-mini",
             reasoning_effort="low",
         ),
-        # gpt 4.1 models
+        # GPT-4.1 models
         "gpt-4.1": ChatCompletionSampler(
             model="gpt-4.1-2025-04-14",
             system_message=OPENAI_SYSTEM_MESSAGE_API,
@@ -73,7 +103,7 @@ def main():
             system_message=OPENAI_SYSTEM_MESSAGE_API,
             max_tokens=2048,
         ),
-        # gpt 4o models
+        # GPT-4o models
         "gpt-4o": ChatCompletionSampler(
             model="gpt-4o",
             system_message=OPENAI_SYSTEM_MESSAGE_API,
@@ -84,18 +114,18 @@ def main():
             system_message=OPENAI_SYSTEM_MESSAGE_API,
             max_tokens=2048,
         ),
-        # gpt 4.5 models
+        # GPT-4.5 model
         "gpt-4.5-preview": ChatCompletionSampler(
             model="gpt-4.5-preview-2025-02-27",
             system_message=OPENAI_SYSTEM_MESSAGE_API,
             max_tokens=2048,
         ),
-        # gpt 4 turbo models 
+        # GPT-4-turbo model 
          "gpt-4-turbo-2024-04-09": ChatCompletionSampler(
             model="gpt-4-turbo-2024-04-09",
             system_message=OPENAI_SYSTEM_MESSAGE_API,
         ),
-        # chatgpt models:
+        # Chatgpt models:
         "chatgpt-4o-latest": ChatCompletionSampler(
             model="chatgpt-4o-latest",
             system_message=OPENAI_SYSTEM_MESSAGE_CHATGPT,
@@ -105,7 +135,7 @@ def main():
             model="gpt-4-turbo-2024-04-09",
             system_message=OPENAI_SYSTEM_MESSAGE_CHATGPT,
         ),
-       # claude models:
+       # Claude models:
         "claude-3-opus-20240229_empty": ClaudeCompletionSampler(
             model="claude-3-opus-20240229",
             system_message=CLAUDE_SYSTEM_MESSAGE_LMSYS,
