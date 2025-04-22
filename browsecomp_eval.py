@@ -89,7 +89,7 @@ class BrowseCompEval(Eval):
         grading_response = self.grader_model(prompt_messages)
 
         match = re.search(r"correct: (yes|no)", grading_response)
-        return match.group(0) if match else "no"  # Default to "no" if no match
+        return match.group(1) if match else "no"  # Default to "no" if no match
 
     def __call__(self, sampler: SamplerBase) -> EvalResult:
             def fn(row: dict):
