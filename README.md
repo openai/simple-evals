@@ -53,7 +53,7 @@ We are open sourcing it so we can be transparent about the accuracy numbers we'r
 
 Evals are sensitive to prompting, and there's significant variation in the formulations used in recent publications and libraries.
 Some use few-shot prompts or role playing prompts ("You are an expert software programmer...").
-These approaches are carryovers from evaluating *base models* (rather than instruction/chat-tuned models) and from models that were worse at following instructions.
+These approaches are carryovers from evaluating *base models* (rather than instruction or chat-tuned models) and from models that were worse at following instructions.
 
 For this library, we are emphasizing the *zero-shot, chain-of-thought* setting, with simple instructions like "Solve the following multiple choice problem". We believe that this prompting technique is a better reflection of the models' performance in realistic usage.
 
