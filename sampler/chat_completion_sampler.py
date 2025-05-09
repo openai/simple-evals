@@ -1,11 +1,13 @@
 import base64
 import time
+import os
+import subprocess
 from typing import Any
 
 import openai
 from openai import OpenAI
 
-from ..types import MessageList, SamplerBase
+from eval_types import MessageList, SamplerBase
 
 OPENAI_SYSTEM_MESSAGE_API = "You are a helpful assistant."
 OPENAI_SYSTEM_MESSAGE_CHATGPT = (
@@ -25,10 +27,32 @@ class ChatCompletionSampler(SamplerBase):
         system_message: str | None = None,
         temperature: float = 0.5,
         max_tokens: int = 1024,
+        base_url: str | None = None,
     ):
         self.api_key_name = "OPENAI_API_KEY"
-        self.client = OpenAI()
-        # using api_key=os.environ.get("OPENAI_API_KEY")  # please set your API_KEY
+        api_key = os.environ.get(self.api_key_name)
+        self.base_url = base_url
+        if not api_key and self.base_url:
+            try:
+                print("OPENAI_API_KEY not found, attempting to fetch token from gcloud.")
+                result = subprocess.run(
+                    "gcloud auth print-access-token",
+                    capture_output=True,
+                    text=True,
+                    check=True,
+                    shell=True # Using shell=True for compatibility, consider security implications
+                )
+                api_key = result.stdout.strip()
+            except FileNotFoundError:
+                print("gcloud command not found. Please ensure gcloud SDK is installed and in your PATH.")
+                api_key = None  # Or handle as an error
+            except subprocess.CalledProcessError as e:
+                print(f"Error fetching token from gcloud: {e}")
+                api_key = None # Or handle as an error
+        elif not api_key:
+            api_key = ""
+
+        self.client = OpenAI(api_key=api_key, base_url=self.base_url)
         self.model = model
         self.system_message = system_message
         self.temperature = temperature
@@ -70,6 +94,7 @@ class ChatCompletionSampler(SamplerBase):
                 print("Bad Request Error", e)
                 return ""
             except Exception as e:
+                print("Error", e)
                 exception_backoff = 2**trial  # expontial back off
                 print(
                     f"Rate limit exception so wait and retry {trial} after {exception_backoff} sec",

@@ -6,7 +6,7 @@ import os
 import openai
 from openai import OpenAI
 
-from ..types import MessageList, SamplerBase
+from eval_types import MessageList, SamplerBase
 
 
 class ResponsesSampler(SamplerBase):
@@ -24,8 +24,12 @@ class ResponsesSampler(SamplerBase):
         reasoning_effort: str | None = None,
     ):
         self.api_key_name = "OPENAI_API_KEY"
-        assert os.environ.get("OPENAI_API_KEY"), "Please set OPENAI_API_KEY"
-        self.client = OpenAI()
+        # assert os.environ.get("OPENAI_API_KEY"), "Please set OPENAI_API_KEY"
+        # set api key to empty if env is not configured
+        api_key = os.environ.get(self.api_key_name)
+        if not api_key:
+            api_key = ""
+        self.client = OpenAI(api_key=api_key)
         self.model = model
         self.system_message = system_message
         self.temperature = temperature

@@ -9,8 +9,8 @@ import hashlib
 import random
 import re
 import pandas
-from . import common
-from .types import Eval, EvalResult, SamplerBase, SingleEvalResult
+import common
+from eval_types import Eval, EvalResult, SamplerBase, SingleEvalResult
 
 # from: https://github.com/centerforaisafety/hle/blob/7b6be5aad6f9b43af3857de7867f3b52f6e4acb3/hle_eval/run_model_predictions.py#L11
 QUERY_TEMPLATE = """
@@ -23,7 +23,7 @@ Confidence: {{your confidence score between 0% and 100% for your answer}}
 """.strip()
 
 # from: https://github.com/centerforaisafety/hle/blob/7b6be5aad6f9b43af3857de7867f3b52f6e4acb3/hle_eval/run_judge_results.py#L16-L33
-GRADER_TEMPLATE = """
+GRADER_TEMPLATE = r"""
 Judge whether the following [response] to [question] is correct or not based on the precise and unambiguous [correct_answer] below.
 
 [question]: {question}
@@ -41,7 +41,7 @@ reasoning: Explain why the extracted_final_answer is correct or incorrect based 
 correct: Answer 'yes' if extracted_final_answer matches the [correct_answer] given above, or is within a small margin of error for numerical problems. Answer 'no' otherwise, i.e. if there if there is any inconsistency, ambiguity, non-equivalency, or if the extracted answer is incorrect.
 
 
-confidence: The extracted confidence score between 0|\%| and 100|\%| from [response]. Put 100 if there is no confidence score available.
+confidence: The extracted confidence score between 0|\\%| and 100|\\%| from [response]. Put 100 if there is no confidence score available.
 """.strip()
 
 CHOICE_STRINGS = ["yes", "no"]

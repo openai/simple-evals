@@ -1,23 +1,23 @@
 import json
 import argparse
 import pandas as pd
-from . import common
-from .browsecomp_eval import BrowseCompEval
-from .drop_eval import DropEval
-from .gpqa_eval import GPQAEval
-from .humaneval_eval import HumanEval
-from .math_eval import MathEval
-from .mgsm_eval import MGSMEval
-from .mmlu_eval import MMLUEval
-from .simpleqa_eval import SimpleQAEval
-from .sampler.chat_completion_sampler import (
+import common
+from browsecomp_eval import BrowseCompEval
+from drop_eval import DropEval
+from gpqa_eval import GPQAEval
+from humaneval_eval import HumanEval
+from math_eval import MathEval
+from mgsm_eval import MGSMEval
+from mmlu_eval import MMLUEval
+from simpleqa_eval import SimpleQAEval
+from sampler.chat_completion_sampler import (
     OPENAI_SYSTEM_MESSAGE_API,
     OPENAI_SYSTEM_MESSAGE_CHATGPT,
     ChatCompletionSampler,
 )
-from .sampler.o_chat_completion_sampler import OChatCompletionSampler
-from .sampler.responses_sampler import ResponsesSampler
-from .sampler.claude_sampler import ClaudeCompletionSampler, CLAUDE_SYSTEM_MESSAGE_LMSYS
+from sampler.o_chat_completion_sampler import OChatCompletionSampler
+from sampler.responses_sampler import ResponsesSampler
+from sampler.claude_sampler import ClaudeCompletionSampler, CLAUDE_SYSTEM_MESSAGE_LMSYS
 
 
 def main():
@@ -31,6 +31,13 @@ def main():
     parser.add_argument("--debug", action="store_true", help="Run in debug mode")
     parser.add_argument(
         "--examples", type=int, help="Number of examples to use (overrides default)"
+    )
+    parser.add_argument(
+        "--evals",
+        type=str,
+        nargs="+",
+        help="Specify one or more evaluation suites to run (e.g., mmlu math)",
+        default=["simpleqa", "mmlu", "math", "gpqa", "mgsm", "drop", "humaneval", "browsecomp"],
     )
 
     args = parser.parse_args()
@@ -140,6 +147,12 @@ def main():
             model="claude-3-opus-20240229",
             system_message=CLAUDE_SYSTEM_MESSAGE_LMSYS,
         ),
+        # Llama models:
+        "llama-4-maverick-17b-128e-instruct-maas": ChatCompletionSampler(
+            model="meta/llama-4-maverick-17b-128e-instruct-maas",
+            system_message=OPENAI_SYSTEM_MESSAGE_API,
+            base_url="https://us-east5-aiplatform.googleapis.com/v1/projects/lab-eas-gcp-eval/locations/us-east5/endpoints/openapi"
+        )
     }
 
     if args.list_models:
@@ -200,7 +213,7 @@ def main():
 
     evals = {
         eval_name: get_evals(eval_name, args.debug)
-        for eval_name in ["simpleqa", "mmlu", "math", "gpqa", "mgsm", "drop", "humaneval", "browsecomp"]
+        for eval_name in args.evals
     }
     print(evals)
     debug_suffix = "_DEBUG" if args.debug else ""
@@ -211,13 +224,13 @@ def main():
             result = eval_obj(sampler)
             # ^^^ how to use a sampler
             file_stem = f"{eval_name}_{model_name}"
-            report_filename = f"/tmp/{file_stem}{debug_suffix}.html"
+            report_filename = f"./tmp/{file_stem}{debug_suffix}.html"
             print(f"Writing report to {report_filename}")
             with open(report_filename, "w") as fh:
                 fh.write(common.make_report(result))
             metrics = result.metrics | {"score": result.score}
             print(metrics)
-            result_filename = f"/tmp/{file_stem}{debug_suffix}.json"
+            result_filename = f"./tmp/{file_stem}{debug_suffix}.json"
             with open(result_filename, "w") as f:
                 f.write(json.dumps(metrics, indent=2))
             print(f"Writing results to {result_filename}")

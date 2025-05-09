@@ -9,7 +9,7 @@ import numpy as np
 import requests
 from tqdm import tqdm
 
-from .types import EvalResult, Message, SamplerBase, SingleEvalResult
+from eval_types import EvalResult, Message, SamplerBase, SingleEvalResult
 
 QUERY_TEMPLATE_MULTICHOICE = """
 Answer the following multiple choice question. The last line of your response should be of the following format: 'Answer: $LETTER' (without quotes) where LETTER is one of ABCD. Think step by step before answering.
@@ -29,48 +29,48 @@ MULTILINGUAL_ANSWER_PATTERN_TEMPLATE = (
 )
 # All the different ways "Answer" is written in different languages
 MULTILINGUAL_ANSWER_REGEXES = [
-    "Answer\s*:",
-    "Answer\s*:​​​​​​",  # Korean invisible character
-    "উত্তর\s*:",
-    "उत्तर\s*:",
-    "উত্তরঃ",
-    "উত্তর\s*:",
-    "Antwort\s*:",
-    "답변\s*:",
-    "정답\s*:",
-    "답\s*:",
-    "答案\s*：",
-    "答案\s*:",
-    "答\s*：",
-    "答\s*:",
-    "答复\s*：",
-    "答曰\s*：",
-    "الإجابة:",
-    "الجواب:",
-    "إجابة:",
-    "الإجابة النهائية:",
-    "الإجابة الصحيحة:",
-    "الإجابة الصحيحة هي:",
-    "الإجابة هي:",
-    "الجواب النهائي:",
-    "Respuesta\s*:",
-    "Risposta\s*:",
-    "答え\s*:",
-    "答え\s*：",
-    "回答\s*:",
-    "回答\s*：",
-    "解答\s*:",
-    "Jawaban\s*:",
-    "Réponse\s*:",
-    "Resposta\s*:",
-    "Jibu\s*:",
-    "Idahun\s*:",
-    "Ìdáhùn\s*:",
-    "Idáhùn\s*:",
-    "Àmọ̀nà\s*:",
-    "Àdáhùn\s*:",
-    "Ànúgọ\s*:",
-    "Àṣàyàn\s*:",
+    r"Answer\\s*:",
+    r"Answer\\s*:​​​​​​",  # Korean invisible character
+    r"উত্তর\\s*:",
+    r"उत्तर\\s*:",
+    r"উত্তরঃ",
+    r"উত্তর\\s*:",
+    r"Antwort\\s*:",
+    r"답변\\s*:",
+    r"정답\\s*:",
+    r"답\\s*:",
+    r"答案\\s*：",
+    r"答案\\s*:",
+    r"答\\s*：",
+    r"答\\s*:",
+    r"答复\\s*：",
+    r"答曰\\s*：",
+    "الإجابة:",  # No backslash, no r needed
+    "الجواب:",  # No backslash, no r needed
+    "إجابة:",  # No backslash, no r needed
+    "الإجابة النهائية:",  # No backslash, no r needed
+    "الإجابة الصحيحة:",  # No backslash, no r needed
+    "الإجابة الصحيحة هي:",  # No backslash, no r needed
+    "الإجابة هي:",  # No backslash, no r needed
+    "الجواب النهائي:",  # No backslash, no r needed
+    r"Respuesta\\s*:",
+    r"Risposta\\s*:",
+    r"答え\\s*:",
+    r"答え\\s*：",
+    r"回答\\s*:",
+    r"回答\\s*：",
+    r"解答\\s*:",
+    r"Jawaban\\s*:",
+    r"Réponse\\s*:",
+    r"Resposta\\s*:",
+    r"Jibu\\s*:",
+    r"Idahun\\s*:",
+    r"Ìdáhùn\\s*:",
+    r"Idáhùn\\s*:",
+    r"Àmọ̀nà\\s*:",
+    r"Àdáhùn\\s*:",
+    r"Ànúgọ\\s*:",
+    r"Àṣàyàn\\s*:",
 ]
 
 
