@@ -9,14 +9,16 @@ import json
 import random
 import re
 import string
+import pathlib
+import urllib.request
 from typing import Any, Dict, List, Optional, Set, Tuple, Union
 
 import numpy as np
 from scipy.optimize import linear_sum_assignment
 
-from . import common
-from .common import ANSWER_PATTERN, HTML_JINJA
-from .types import Eval, EvalResult, SamplerBase, SingleEvalResult
+import common
+from common import ANSWER_PATTERN, HTML_JINJA
+from eval_types import Eval, EvalResult, SamplerBase, SingleEvalResult
 
 """
 From here through _normalize_answer was originally copied from:
@@ -233,20 +235,45 @@ def drop_metric(sample: str, reference: list[str]) -> Tuple[float, float]:
     return (max(em_scores), max(f1_scores))
 
 
+CACHE_DIR = pathlib.Path(".simple_evals_cache")
+
 class DropEval(Eval):
     def __init__(self, num_examples: int | None = None, train_samples_per_prompt: int = 3):
         self.seed = 42
         self._num_examples = num_examples
         self._train_samples_per_prompt = train_samples_per_prompt
-        self.train_jsonl = (
+        
+        train_url = (
             "https://openaipublic.blob.core.windows.net/simple-evals/drop_v0_train.jsonl.gz"
         )
-        self.test_jsonl = (
+        test_url = (
             "https://openaipublic.blob.core.windows.net/simple-evals/drop_v0_dev.jsonl.gz"
         )
-        with gzip.GzipFile(fileobj=common.url_to_fileobj(self.train_jsonl, binary=True), mode="rb") as f:
+
+        CACHE_DIR.mkdir(parents=True, exist_ok=True)
+
+        train_file_name = train_url.split("/")[-1]
+        cached_train_file_path = CACHE_DIR / train_file_name
+
+        if cached_train_file_path.exists():
+            print(f"Loading cached DROP train data from {cached_train_file_path}")
+        else:
+            print(f"Downloading DROP train data from {train_url} to {cached_train_file_path}")
+            urllib.request.urlretrieve(train_url, str(cached_train_file_path))
+        
+        with gzip.GzipFile(filename=str(cached_train_file_path), mode="rb") as f:
             self.train_samples = list(map(json.loads, f.readlines()))
-        with gzip.GzipFile(fileobj=common.url_to_fileobj(self.test_jsonl, binary=True), mode="rb") as f:
+
+        test_file_name = test_url.split("/")[-1]
+        cached_test_file_path = CACHE_DIR / test_file_name
+
+        if cached_test_file_path.exists():
+            print(f"Loading cached DROP test data from {cached_test_file_path}")
+        else:
+            print(f"Downloading DROP test data from {test_url} to {cached_test_file_path}")
+            urllib.request.urlretrieve(test_url, str(cached_test_file_path))
+
+        with gzip.GzipFile(filename=str(cached_test_file_path), mode="rb") as f:
             self.test_samples = list(map(json.loads, f.readlines()))
             if self._num_examples:
                 self.test_samples = random.Random(self.seed).sample(

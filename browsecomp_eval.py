@@ -9,8 +9,12 @@ import hashlib
 import random
 import re
 import pandas
-from . import common
-from .types import Eval, EvalResult, SamplerBase, SingleEvalResult
+import pathlib
+import urllib.request
+import common
+from eval_types import Eval, EvalResult, SamplerBase, SingleEvalResult
+
+CACHE_DIR = pathlib.Path(".simple_evals_cache")
 
 # from: https://github.com/centerforaisafety/hle/blob/7b6be5aad6f9b43af3857de7867f3b52f6e4acb3/hle_eval/run_model_predictions.py#L11
 QUERY_TEMPLATE = """
@@ -23,7 +27,7 @@ Confidence: {{your confidence score between 0% and 100% for your answer}}
 """.strip()
 
 # from: https://github.com/centerforaisafety/hle/blob/7b6be5aad6f9b43af3857de7867f3b52f6e4acb3/hle_eval/run_judge_results.py#L16-L33
-GRADER_TEMPLATE = """
+GRADER_TEMPLATE = r"""
 Judge whether the following [response] to [question] is correct or not based on the precise and unambiguous [correct_answer] below.
 
 [question]: {question}
@@ -41,7 +45,7 @@ reasoning: Explain why the extracted_final_answer is correct or incorrect based 
 correct: Answer 'yes' if extracted_final_answer matches the [correct_answer] given above, or is within a small margin of error for numerical problems. Answer 'no' otherwise, i.e. if there if there is any inconsistency, ambiguity, non-equivalency, or if the extracted answer is incorrect.
 
 
-confidence: The extracted confidence score between 0|\%| and 100|\%| from [response]. Put 100 if there is no confidence score available.
+confidence: The extracted confidence score between 0|\\%| and 100|\\%| from [response]. Put 100 if there is no confidence score available.
 """.strip()
 
 CHOICE_STRINGS = ["yes", "no"]
@@ -64,10 +68,21 @@ def decrypt(ciphertext_b64: str, password: str) -> str:
 
 
 class BrowseCompEval(Eval):
-    def __init__(self, grader_model: SamplerBase, num_examples: int | None = None, n_repeats: int = 1):
-        df = pandas.read_csv(
-            "https://openaipublic.blob.core.windows.net/simple-evals/browse_comp_test_set.csv"
-        )
+    def __init__(self, grader_model: SamplerBase, num_examples: int | None = None, n_repeats: int = 1, batch_size: int = 20, checkpoint_file: str | None = None):
+        url = "https://openaipublic.blob.core.windows.net/simple-evals/browse_comp_test_set.csv"
+        
+        CACHE_DIR.mkdir(parents=True, exist_ok=True)
+        file_name = url.split("/")[-1]
+        cached_file_path = CACHE_DIR / file_name
+
+        if cached_file_path.exists():
+            print(f"Loading cached BrowseComp data from {cached_file_path}")
+            df = pandas.read_csv(cached_file_path)
+        else:
+            print(f"Downloading BrowseComp data from {url} to {cached_file_path}")
+            urllib.request.urlretrieve(url, str(cached_file_path))
+            df = pandas.read_csv(cached_file_path)
+
         examples = [row.to_dict() for _, row in df.iterrows()]
         if num_examples:
             assert n_repeats == 1, "n_repeats only supported when max_examples = None"
@@ -93,17 +108,24 @@ class BrowseCompEval(Eval):
 
     def __call__(self, sampler: SamplerBase) -> EvalResult:
             def fn(row: dict):
+                print(1)
                 problem = decrypt(row.get("problem", ""), row.get("canary", ""))
                 answer = decrypt(row.get("answer", ""), row.get("canary", ""))
                 prompt_messages = [
                     sampler._pack_message(content=QUERY_TEMPLATE.format(Question=problem), role="user")
                 ]
                 response_text = sampler(prompt_messages)
+                
+                # Find the first occurrence of "Explanation" and remove everything before it
+                explanation_index = response_text.find("Explanation:")
+                if explanation_index != -1:
+                    response_text = response_text[explanation_index:]
+                
                 grade_result = self.grade_sample(problem, answer, response_text)
 
                 # Metrics based on grading response
-                is_correct = grade_result == "yes"
-                is_incorrect = grade_result == "no"
+                is_correct = float(grade_result == "yes")
+                is_incorrect = float(grade_result == "no")
                 
                 score = is_correct
 
@@ -112,10 +134,12 @@ class BrowseCompEval(Eval):
                     prompt_messages=prompt_messages,
                     next_message=dict(content=response_text, role="assistant"),
                     score=score,
-                    correct_answer=row["answer"],
+                    # correct_answer=row["answer"],
+                    correct_answer=answer,
                     extracted_answer=response_text,
                 )
                 convo = prompt_messages + [dict(content=response_text, role="assistant")]
+                print(2)
                 return SingleEvalResult(html=html, score=score, convo=convo, metrics={
                     "is_correct": is_correct,
                     "is_incorrect": is_incorrect,

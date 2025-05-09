@@ -8,8 +8,9 @@ import jinja2
 import numpy as np
 import requests
 from tqdm import tqdm
+import json
 
-from .types import EvalResult, Message, SamplerBase, SingleEvalResult
+from eval_types import EvalResult, Message, SamplerBase, SingleEvalResult
 
 QUERY_TEMPLATE_MULTICHOICE = """
 Answer the following multiple choice question. The last line of your response should be of the following format: 'Answer: $LETTER' (without quotes) where LETTER is one of ABCD. Think step by step before answering.
@@ -29,48 +30,49 @@ MULTILINGUAL_ANSWER_PATTERN_TEMPLATE = (
 )
 # All the different ways "Answer" is written in different languages
 MULTILINGUAL_ANSWER_REGEXES = [
-    "Answer\s*:",
-    "Answer\s*:​​​​​​",  # Korean invisible character
-    "উত্তর\s*:",
-    "उत्तर\s*:",
-    "উত্তরঃ",
-    "উত্তর\s*:",
-    "Antwort\s*:",
-    "답변\s*:",
-    "정답\s*:",
-    "답\s*:",
-    "答案\s*：",
-    "答案\s*:",
-    "答\s*：",
-    "答\s*:",
-    "答复\s*：",
-    "答曰\s*：",
-    "الإجابة:",
-    "الجواب:",
-    "إجابة:",
-    "الإجابة النهائية:",
-    "الإجابة الصحيحة:",
-    "الإجابة الصحيحة هي:",
-    "الإجابة هي:",
-    "الجواب النهائي:",
-    "Respuesta\s*:",
-    "Risposta\s*:",
-    "答え\s*:",
-    "答え\s*：",
-    "回答\s*:",
-    "回答\s*：",
-    "解答\s*:",
-    "Jawaban\s*:",
-    "Réponse\s*:",
-    "Resposta\s*:",
-    "Jibu\s*:",
-    "Idahun\s*:",
-    "Ìdáhùn\s*:",
-    "Idáhùn\s*:",
-    "Àmọ̀nà\s*:",
-    "Àdáhùn\s*:",
-    "Ànúgọ\s*:",
-    "Àṣàyàn\s*:",
+    r"Answer\s*:",
+    r"Answer\\s*:",
+    r"Answer\\s*:​​​​​​",  # Korean invisible character
+    r"উত্তর\\s*:",
+    r"उत्तर\\s*:",
+    r"উত্তরঃ",
+    r"উত্তর\\s*:",
+    r"Antwort\\s*:",
+    r"답변\\s*:",
+    r"정답\\s*:",
+    r"답\\s*:",
+    r"答案\\s*：",
+    r"答案\\s*:",
+    r"答\\s*：",
+    r"答\\s*:",
+    r"答复\\s*：",
+    r"答曰\\s*：",
+    "الإجابة:",  # No backslash, no r needed
+    "الجواب:",  # No backslash, no r needed
+    "إجابة:",  # No backslash, no r needed
+    "الإجابة النهائية:",  # No backslash, no r needed
+    "الإجابة الصحيحة:",  # No backslash, no r needed
+    "الإجابة الصحيحة هي:",  # No backslash, no r needed
+    "الإجابة هي:",  # No backslash, no r needed
+    "الجواب النهائي:",  # No backslash, no r needed
+    r"Respuesta\\s*:",
+    r"Risposta\\s*:",
+    r"答え\\s*:",
+    r"答え\\s*：",
+    r"回答\\s*:",
+    r"回答\\s*：",
+    r"解答\\s*:",
+    r"Jawaban\\s*:",
+    r"Réponse\\s*:",
+    r"Resposta\\s*:",
+    r"Jibu\\s*:",
+    r"Idahun\\s*:",
+    r"Ìdáhùn\\s*:",
+    r"Idáhùn\\s*:",
+    r"Àmọ̀nà\\s*:",
+    r"Àdáhùn\\s*:",
+    r"Ànúgọ\\s*:",
+    r"Àṣàyàn\\s*:",
 ]
 
 
@@ -372,3 +374,76 @@ def url_to_fileobj(url: str, binary=False) -> Any:
     response = requests.get(url)
     response.raise_for_status()
     return io.BytesIO(response.content) if binary else io.StringIO(response.text)
+
+def load_checkpoint(checkpoint_file: str | None) -> list[SingleEvalResult]:
+    """Loads processed results from the checkpoint file."""
+    if not checkpoint_file or not os.path.exists(checkpoint_file):
+        if checkpoint_file:  # Only print if a path was given
+            print(f"Checkpoint file {checkpoint_file} not found. Starting fresh.")
+        return []
+
+    loaded_results: list[SingleEvalResult] = []
+    try:
+        with open(checkpoint_file, "r") as f:
+            for line_number, line in enumerate(f, 1):
+                line_content = line.strip()
+                if not line_content:  # Skip empty lines
+                    continue
+                try:
+                    data = json.loads(line_content)
+                    # Basic validation for required keys from SingleEvalResult
+                    if not all(k in data for k in ["html", "score"]):
+                        print(
+                            f"Skipping entry with missing core keys ('html', 'score') in checkpoint file {checkpoint_file} at line {line_number}."
+                        )
+                        continue
+
+                    # metrics and convo are optional in SingleEvalResult
+                    result = SingleEvalResult(
+                        html=data["html"],
+                        score=data["score"],
+                        metrics=data.get("metrics"),
+                        convo=data.get("convo"),
+                    )
+                    loaded_results.append(result)
+                except json.JSONDecodeError:
+                    print(
+                        f"Skipping malformed JSON in checkpoint file {checkpoint_file} at line {line_number}: {line_content}"
+                    )
+                except KeyError as e:
+                    print(
+                        f"Skipping entry with missing key {e} in checkpoint file {checkpoint_file} at line {line_number}: {line_content}"
+                    )
+
+        if loaded_results:
+            print(
+                f"Resumed from checkpoint. Loaded {len(loaded_results)} results from {checkpoint_file}."
+            )
+        else:
+            # File existed but was empty or all lines were invalid
+            print(
+                f"Checkpoint file {checkpoint_file} was empty or contained no valid entries. Starting fresh."
+            )
+        return loaded_results
+    except Exception as e:  # Catch other errors like permission issues
+        print(f"Error loading checkpoint from {checkpoint_file}: {e}. Starting fresh.")
+        return []  # Ensure clean state on major load error
+
+
+def save_checkpoint(checkpoint_file: str | None, new_results: list[SingleEvalResult]):
+    """Appends new results to the checkpoint file."""
+    if not checkpoint_file:
+        return
+    try:
+        with open(checkpoint_file, "a") as f:
+            for result in new_results:
+                # Convert SingleEvalResult to dict for JSON serialization
+                result_dict = {
+                    "html": result.html,
+                    "score": result.score,
+                    "metrics": result.metrics,
+                    "convo": result.convo,
+                }
+                f.write(json.dumps(result_dict) + "\n")
+    except Exception as e:
+        print(f"Error saving checkpoint to {checkpoint_file}: {e}")

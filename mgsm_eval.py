@@ -7,10 +7,12 @@ https://arxiv.org/abs/2210.03057 reference: https://github.com/google-research/u
 
 import re
 from typing import Optional
+import pathlib
+import urllib.request
 
-from . import common
-from .mmlu_eval import HTML_JINJA
-from .types import Eval, EvalResult, SamplerBase, SingleEvalResult
+import common
+from mmlu_eval import HTML_JINJA
+from eval_types import Eval, EvalResult, SamplerBase, SingleEvalResult
 
 ALL_LANGUAGES = ["bn", "de", "en", "es", "fr", "ja", "ru", "sw", "te", "th", "zh"]
 LATIN_LANGUAGES = ["de", "en", "es", "fr", "sw"]
@@ -79,6 +81,7 @@ LANG_TO_ANSWER_PREFIX = {
     "zh": "答案",
 }
 
+CACHE_DIR = pathlib.Path(".simple_evals_cache")
 
 def parse_answer(answer: str, answer_prefix: str) -> str:
     if answer_prefix not in answer:
@@ -106,14 +109,25 @@ def score_mgsm(target: str, prediction: str) -> bool:
 
 def get_lang_examples(lang: str) -> list[dict[str, str]]:
     fpath = LANG_TO_FPATH[lang]
+    CACHE_DIR.mkdir(parents=True, exist_ok=True)
+    file_name = fpath.split("/")[-1]
+    cached_file_path = CACHE_DIR / file_name
+
+    if not cached_file_path.exists():
+        print(f"Downloading MGSM data for lang '{lang}' from {fpath} to {cached_file_path}")
+        urllib.request.urlretrieve(fpath, str(cached_file_path))
+    else:
+        print(f"Loading cached MGSM data for lang '{lang}' from {cached_file_path}")
+
     examples = []
-    with common.url_to_fileobj(fpath, binary=True) as f:
-        for raw_line in f:
-            line = raw_line.decode("utf-8").strip()
+    with open(cached_file_path, "r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
             inputs, targets = line.split("\t")
             if "." in targets:
                 raise ValueError(f"targets {targets} contains a decimal point.")
-            # targets = int(targets.replace(",", ""))
             examples.append({"inputs": inputs, "targets": targets, "lang": lang})
     return examples
 
@@ -132,6 +146,8 @@ class MGSMEval(Eval):
         self,
         num_examples_per_lang: int = 250,  # restrict to a subset of the data for debugging
         languages: Optional[list[str]] = ALL_LANGUAGES,
+        batch_size: int = 20, # Default batch size
+        checkpoint_file: str | None = None, # Path to the checkpoint file
     ):
         if languages is None:
             languages = ALL_LANGUAGES
@@ -150,6 +166,13 @@ class MGSMEval(Eval):
             lang_examples = get_lang_examples(lang)
             examples.extend(lang_examples[: self._num_examples_per_lang])
         self.examples = examples
+        
+        self.batch_size = batch_size
+        self.checkpoint_file = checkpoint_file
+        self.processed_results: list[SingleEvalResult] = []
+
+        if self.checkpoint_file:
+            self.processed_results = common.load_checkpoint(self.checkpoint_file)
 
     def __call__(self, sampler: SamplerBase) -> EvalResult:
         def fn(example: dict[str, str]):
@@ -186,5 +209,37 @@ class MGSMEval(Eval):
                 metrics={language: score, latin_language: score},
             )
 
-        results = common.map_with_progress(fn, self.examples)
-        return common.aggregate_results(results, default_stats=("mean", "std"))
+        num_already_processed = len(self.processed_results)
+
+        if num_already_processed >= len(self.examples):
+            if not self.examples: # No examples to run at all
+                print("No examples to evaluate.")
+                return common.aggregate_results([]) # Return empty aggregated result
+            print("All examples were already processed according to checkpoint.")
+            return common.aggregate_results(self.processed_results)
+
+        examples_to_process_this_run = self.examples[num_already_processed:]
+        num_total_examples_in_run = len(self.examples)
+
+        print(f"Starting MGSM evaluation. Total examples: {num_total_examples_in_run}. Already processed: {num_already_processed}. Remaining: {len(examples_to_process_this_run)}.")
+
+        for i in range(0, len(examples_to_process_this_run), self.batch_size):
+            batch_examples = examples_to_process_this_run[i : i + self.batch_size]
+            if not batch_examples:
+                continue
+
+            current_global_start_index_for_batch = num_already_processed + i
+            
+            batch_start_num_display = current_global_start_index_for_batch + 1
+            batch_end_num_display = min(current_global_start_index_for_batch + len(batch_examples), num_total_examples_in_run)
+            
+            print(f"Processing batch: examples {batch_start_num_display}-{batch_end_num_display} of {num_total_examples_in_run} (Batch size: {self.batch_size})")
+            
+            batch_new_results: list[SingleEvalResult] = common.map_with_progress(fn, batch_examples)
+            self.processed_results.extend(batch_new_results)
+            
+            if self.checkpoint_file and batch_new_results:
+                common.save_checkpoint(self.checkpoint_file, batch_new_results)
+        
+        print(f"MGSM evaluation finished. Processed {len(self.processed_results)} results in total out of {num_total_examples_in_run} examples.")
+        return common.aggregate_results(self.processed_results, default_stats=("mean", "std"))

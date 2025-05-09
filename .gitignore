@@ -127,3 +127,8 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# tmp
+tmp/
+
+.simple_evals_cache/
