@@ -20,19 +20,39 @@ class GPQAEval(Eval):
         n_repeats: int = 4,
         variant: str = "diamond",
         num_examples: int | None = None,  # restrict to a subset of the data for debugging
+        batch_size: int = 20, # Default batch size, can be configured
+        checkpoint_file: str | None = None,  # Path to the checkpoint file
     ):
-        df = pandas.read_csv(
+        rng = random.Random(0)  
+        df_repeated = pandas.read_csv(
             f"https://openaipublic.blob.core.windows.net/simple-evals/gpqa_{variant}.csv"
         )
-        examples = [row.to_dict() for _, row in df.iterrows()]
-        rng = random.Random(0)
+        all_examples_from_csv = [row.to_dict() for _, row in df_repeated.iterrows()]
+        
         if num_examples:
-            assert n_repeats == 1, "n_repeats only supported for num_examples = None"
-            examples = rng.sample(examples, num_examples)
-        examples = examples * n_repeats
-        examples = [example | {"permutation": rng.sample(range(4), 4)} for example in examples]
-        self.examples = examples
-        self.n_repeats = n_repeats
+            # If num_examples is used, n_repeats is 1 (assertion exists)
+            # Sample *before* adding permutations.
+            final_examples_base = rng.sample(all_examples_from_csv, num_examples)
+        else:
+            # Use all examples, then repeat
+            final_examples_base = all_examples_from_csv * n_repeats
+
+        # Now, assign a unique, deterministic permutation to each *instance* in final_examples_base
+        # To make this deterministic across runs (even with checkpointing), we need a seed for each permutation.
+        # We can use the index in this final_examples_base list.
+        self.examples = []
+        for i, ex in enumerate(final_examples_base):
+            # Seed the RNG for permutation with a combination of global seed and instance index
+            perm_rng = random.Random(i) # Using i as seed for this specific permutation
+            self.examples.append(ex | {"permutation": perm_rng.sample(range(4), 4)})
+
+        self.n_repeats = n_repeats # Though less directly used if num_examples is set
+        self.batch_size = batch_size
+        self.checkpoint_file = checkpoint_file
+        self.processed_results: list[SingleEvalResult] = []
+
+        if self.checkpoint_file:
+            self.processed_results = common.load_checkpoint(self.checkpoint_file)
 
     def __call__(self, sampler: SamplerBase) -> EvalResult:
         def fn(row: dict):
@@ -42,6 +62,7 @@ class GPQAEval(Eval):
                 row["Incorrect Answer 2"],
                 row["Incorrect Answer 3"],
             ]
+            # Permutation is now pre-assigned and part of the 'row'
             choices = [choices[i] for i in row["permutation"]]
             correct_index = choices.index(row["Correct Answer"])
             correct_answer = "ABCD"[correct_index]
@@ -69,5 +90,37 @@ class GPQAEval(Eval):
                 html=html, score=score, convo=convo, metrics={"chars": len(response_text)}
             )
 
-        results = common.map_with_progress(fn, self.examples)
-        return common.aggregate_results(results)
+        num_already_processed = len(self.processed_results)
+        
+        if num_already_processed >= len(self.examples):
+            if not self.examples: # No examples to run at all
+                print("No examples to evaluate.")
+                return common.aggregate_results([]) # Return empty aggregated result
+            print("All examples were already processed according to checkpoint.")
+            return common.aggregate_results(self.processed_results)
+
+        examples_to_process_this_run = self.examples[num_already_processed:]
+        num_total_examples_in_run = len(self.examples)
+
+        print(f"Starting GPQA evaluation. Total examples: {num_total_examples_in_run}. Already processed: {num_already_processed}. Remaining: {len(examples_to_process_this_run)}.")
+
+        for i in range(0, len(examples_to_process_this_run), self.batch_size):
+            batch_examples = examples_to_process_this_run[i : i + self.batch_size]
+            if not batch_examples:
+                continue
+            
+            current_global_start_index_for_batch = num_already_processed + i
+            batch_start_num_display = current_global_start_index_for_batch + 1
+            batch_end_num_display = min(current_global_start_index_for_batch + len(batch_examples), num_total_examples_in_run)
+            
+            print(f"Processing batch: examples {batch_start_num_display}-{batch_end_num_display} of {num_total_examples_in_run} (Batch size: {self.batch_size})")
+            
+            # batch_new_results: list[SingleEvalResult] = [] # Not needed, common.map_with_progress returns a new list
+            batch_new_results = common.map_with_progress(fn, batch_examples)
+            self.processed_results.extend(batch_new_results)
+            
+            if self.checkpoint_file and batch_new_results:
+                common.save_checkpoint(self.checkpoint_file, batch_new_results)
+        
+        print(f"GPQA evaluation finished. Processed {len(self.processed_results)} results in total out of {num_total_examples_in_run} examples.")
+        return common.aggregate_results(self.processed_results)

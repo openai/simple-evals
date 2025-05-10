@@ -8,6 +8,7 @@ import jinja2
 import numpy as np
 import requests
 from tqdm import tqdm
+import json
 
 from eval_types import EvalResult, Message, SamplerBase, SingleEvalResult
 
@@ -29,6 +30,7 @@ MULTILINGUAL_ANSWER_PATTERN_TEMPLATE = (
 )
 # All the different ways "Answer" is written in different languages
 MULTILINGUAL_ANSWER_REGEXES = [
+    r"Answer\s*:",
     r"Answer\\s*:",
     r"Answer\\s*:​​​​​​",  # Korean invisible character
     r"উত্তর\\s*:",
@@ -372,3 +374,76 @@ def url_to_fileobj(url: str, binary=False) -> Any:
     response = requests.get(url)
     response.raise_for_status()
     return io.BytesIO(response.content) if binary else io.StringIO(response.text)
+
+def load_checkpoint(checkpoint_file: str | None) -> list[SingleEvalResult]:
+    """Loads processed results from the checkpoint file."""
+    if not checkpoint_file or not os.path.exists(checkpoint_file):
+        if checkpoint_file:  # Only print if a path was given
+            print(f"Checkpoint file {checkpoint_file} not found. Starting fresh.")
+        return []
+
+    loaded_results: list[SingleEvalResult] = []
+    try:
+        with open(checkpoint_file, "r") as f:
+            for line_number, line in enumerate(f, 1):
+                line_content = line.strip()
+                if not line_content:  # Skip empty lines
+                    continue
+                try:
+                    data = json.loads(line_content)
+                    # Basic validation for required keys from SingleEvalResult
+                    if not all(k in data for k in ["html", "score"]):
+                        print(
+                            f"Skipping entry with missing core keys ('html', 'score') in checkpoint file {checkpoint_file} at line {line_number}."
+                        )
+                        continue
+
+                    # metrics and convo are optional in SingleEvalResult
+                    result = SingleEvalResult(
+                        html=data["html"],
+                        score=data["score"],
+                        metrics=data.get("metrics"),
+                        convo=data.get("convo"),
+                    )
+                    loaded_results.append(result)
+                except json.JSONDecodeError:
+                    print(
+                        f"Skipping malformed JSON in checkpoint file {checkpoint_file} at line {line_number}: {line_content}"
+                    )
+                except KeyError as e:
+                    print(
+                        f"Skipping entry with missing key {e} in checkpoint file {checkpoint_file} at line {line_number}: {line_content}"
+                    )
+
+        if loaded_results:
+            print(
+                f"Resumed from checkpoint. Loaded {len(loaded_results)} results from {checkpoint_file}."
+            )
+        else:
+            # File existed but was empty or all lines were invalid
+            print(
+                f"Checkpoint file {checkpoint_file} was empty or contained no valid entries. Starting fresh."
+            )
+        return loaded_results
+    except Exception as e:  # Catch other errors like permission issues
+        print(f"Error loading checkpoint from {checkpoint_file}: {e}. Starting fresh.")
+        return []  # Ensure clean state on major load error
+
+
+def save_checkpoint(checkpoint_file: str | None, new_results: list[SingleEvalResult]):
+    """Appends new results to the checkpoint file."""
+    if not checkpoint_file:
+        return
+    try:
+        with open(checkpoint_file, "a") as f:
+            for result in new_results:
+                # Convert SingleEvalResult to dict for JSON serialization
+                result_dict = {
+                    "html": result.html,
+                    "score": result.score,
+                    "metrics": result.metrics,
+                    "convo": result.convo,
+                }
+                f.write(json.dumps(result_dict) + "\n")
+    except Exception as e:
+        print(f"Error saving checkpoint to {checkpoint_file}: {e}")
