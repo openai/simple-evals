@@ -6,6 +6,8 @@ https://arxiv.org/abs/2311.12022
 
 import random
 import re
+import pathlib
+import urllib.request
 
 import pandas
 
@@ -13,6 +15,7 @@ import common
 from common import ANSWER_PATTERN_MULTICHOICE, HTML_JINJA, format_multichoice_question
 from eval_types import Eval, EvalResult, MessageList, SamplerBase, SingleEvalResult
 
+CACHE_DIR = pathlib.Path(".simple_evals_cache")
 
 class GPQAEval(Eval):
     def __init__(
@@ -24,9 +27,19 @@ class GPQAEval(Eval):
         checkpoint_file: str | None = None,  # Path to the checkpoint file
     ):
         rng = random.Random(0)  
-        df_repeated = pandas.read_csv(
-            f"https://openaipublic.blob.core.windows.net/simple-evals/gpqa_{variant}.csv"
-        )
+        url = f"https://openaipublic.blob.core.windows.net/simple-evals/gpqa_{variant}.csv"
+        CACHE_DIR.mkdir(parents=True, exist_ok=True)
+        file_name = url.split("/")[-1]
+        cached_file_path = CACHE_DIR / file_name
+
+        if cached_file_path.exists():
+            print(f"Loading cached GPQA data from {cached_file_path}")
+            df_repeated = pandas.read_csv(cached_file_path)
+        else:
+            print(f"Downloading GPQA data from {url} to {cached_file_path}")
+            urllib.request.urlretrieve(url, str(cached_file_path))
+            df_repeated = pandas.read_csv(cached_file_path)
+            
         all_examples_from_csv = [row.to_dict() for _, row in df_repeated.iterrows()]
         
         if num_examples:

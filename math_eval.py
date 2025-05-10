@@ -8,6 +8,8 @@ import random
 import re
 import os
 import json
+import pathlib
+import urllib.request
 from typing import Literal
 
 import pandas
@@ -24,6 +26,7 @@ Solve the following math problem step by step. The last line of your response sh
 Remember to put your answer on its own line after "Answer:", and you do not need to use a \\boxed command.
 """.strip()
 
+CACHE_DIR = pathlib.Path(".simple_evals_cache")
 
 class MathEval(Eval):
     def __init__(
@@ -35,9 +38,19 @@ class MathEval(Eval):
         batch_size: int = 20,
         checkpoint_file: str | None = None,
     ):
-        df = pandas.read_csv(
-            f"https://openaipublic.blob.core.windows.net/simple-evals/{split}.csv"
-        )
+        url = f"https://openaipublic.blob.core.windows.net/simple-evals/{split}.csv"
+        CACHE_DIR.mkdir(parents=True, exist_ok=True)
+        file_name = url.split("/")[-1]
+        cached_file_path = CACHE_DIR / file_name
+
+        if cached_file_path.exists():
+            print(f"Loading cached MATH data from {cached_file_path}")
+            df = pandas.read_csv(cached_file_path)
+        else:
+            print(f"Downloading MATH data from {url} to {cached_file_path}")
+            urllib.request.urlretrieve(url, str(cached_file_path))
+            df = pandas.read_csv(cached_file_path)
+            
         examples = [row.to_dict() for _, row in df.iterrows()]
         if num_examples:
             assert n_repeats == 1, "n_repeats only supported for num_examples = None"

@@ -7,6 +7,8 @@ https://cdn.openai.com/papers/simpleqa.pdf
 import random 
 import re
 import pandas
+import pathlib
+import urllib.request
 import common
 from eval_types import Eval, EvalResult, SamplerBase, SingleEvalResult
 
@@ -96,18 +98,42 @@ CHOICE_LETTERS = ["A", "B", "C"]
 CHOICE_STRINGS = ["CORRECT", "INCORRECT", "NOT_ATTEMPTED"]
 CHOICE_LETTER_TO_STRING = dict(zip(CHOICE_LETTERS, CHOICE_STRINGS))
 
+CACHE_DIR = pathlib.Path(".simple_evals_cache")
+
 class SimpleQAEval(Eval):
-    def __init__(self, grader_model: SamplerBase, num_examples: int | None = None, n_repeats: int = 1):
-        df = pandas.read_csv(
-            "https://openaipublic.blob.core.windows.net/simple-evals/simple_qa_test_set.csv"
-        )
+    def __init__(self, grader_model: SamplerBase, num_examples: int | None = None, n_repeats: int = 1, batch_size: int = 20, checkpoint_file: str | None = None):
+        url = "https://openaipublic.blob.core.windows.net/simple-evals/simple_qa_test_set.csv"
+        CACHE_DIR.mkdir(parents=True, exist_ok=True)
+        file_name = url.split("/")[-1]
+        cached_file_path = CACHE_DIR / file_name
+
+        if cached_file_path.exists():
+            print(f"Loading cached data from {cached_file_path}")
+            df = pandas.read_csv(cached_file_path)
+        else:
+            print(f"Downloading data from {url} to {cached_file_path}")
+            urllib.request.urlretrieve(url, str(cached_file_path))
+            df = pandas.read_csv(cached_file_path)
+            
         examples = [row.to_dict() for _, row in df.iterrows()]
         if num_examples:
-            assert n_repeats == 1, "n_repeats only supported when max_examples = None"
+            # n_repeats is asserted to be 1 if num_examples is specified.
+            # This means we first sample, then potentially repeat (though current logic makes repeats=1).
+            # If checkpointing, the initial sample is fixed.
+            assert n_repeats == 1, "n_repeats must be 1 when num_examples is specified"
             rng = random.Random(0)
             examples = rng.sample(examples, num_examples)
+        
         self.examples = examples * n_repeats
         self.grader_model = grader_model
+        self.batch_size = batch_size
+        self.checkpoint_file = checkpoint_file
+        self.processed_results: list[SingleEvalResult] = []
+
+        if self.checkpoint_file:
+            # Assuming common.load_checkpoint loads all results from the file
+            self.processed_results = common.load_checkpoint(self.checkpoint_file)
+
 
     def grade_sample(self, question: str, target: str, predicted_answer: str) -> str:
         grader_prompt = GRADER_TEMPLATE.format(
@@ -125,17 +151,18 @@ class SimpleQAEval(Eval):
         return match.group(0) if match else "C"  # Default to "NOT_ATTEMPTED" if no match
 
     def __call__(self, sampler: SamplerBase) -> EvalResult:
-            def fn(row: dict):
+            def process_example(row: dict):
                 prompt_messages = [
                     sampler._pack_message(content=row.get("problem", ""), role="user")
                 ]
+
                 response_text = sampler(prompt_messages)
                 grade_letter = self.grade_sample(row.get("problem", ""), row.get("answer", ""), response_text)
-                
+
                 # Metrics based on grading response
-                is_correct = grade_letter == "A"
-                is_incorrect = grade_letter == "B"
-                is_not_attempted = grade_letter == "C"
+                is_correct = float(grade_letter == "A")
+                is_incorrect = float(grade_letter == "B")
+                is_not_attempted = float(grade_letter == "C")
                 
                 score = is_correct
 
@@ -148,20 +175,60 @@ class SimpleQAEval(Eval):
                     extracted_answer=response_text,
                 )
                 convo = prompt_messages + [dict(content=response_text, role="assistant")]
-                return SingleEvalResult(html=html, score=score, convo=convo, metrics={
-                    "is_correct": is_correct,
-                    "is_incorrect": is_incorrect,
-                    "is_not_attempted": is_not_attempted
-                })
+                try:
+                    result = SingleEvalResult(html=html, score=score, convo=convo, metrics={
+                        "is_correct": is_correct,
+                        "is_incorrect": is_incorrect,
+                        "is_not_attempted": is_not_attempted
+                    })
+                except Exception as e:
+                    print("Error: ", e)
+                    return None
+                print(6)
+                return result
 
-            # Run evaluation and collect results
-            results = common.map_with_progress(fn, self.examples)
+            num_already_processed = len(self.processed_results)
 
-            # Aggregate metrics
+            if not self.examples: # No examples to run at all
+                print("No examples to evaluate.")
+                return common.aggregate_results([]) # Return empty aggregated result
+
+            if num_already_processed >= len(self.examples):
+                print(f"All {len(self.examples)} examples were already processed according to checkpoint.")
+                # Final aggregation logic will use self.processed_results
+            else:
+                examples_to_process_this_run = self.examples[num_already_processed:]
+                num_total_examples_in_run = len(self.examples)
+
+                print(f"Starting evaluation. Total examples: {num_total_examples_in_run}. Already processed: {num_already_processed}. Remaining: {len(examples_to_process_this_run)}.")
+
+                for i in range(0, len(examples_to_process_this_run), self.batch_size):
+                    batch_examples = examples_to_process_this_run[i : i + self.batch_size]
+                    if not batch_examples:
+                        continue
+
+                    current_global_start_index_for_batch = num_already_processed + i
+                    batch_start_num_display = current_global_start_index_for_batch + 1
+                    batch_end_num_display = min(current_global_start_index_for_batch + len(batch_examples), num_total_examples_in_run)
+                    
+                    print(f"Processing batch: examples {batch_start_num_display}-{batch_end_num_display} of {num_total_examples_in_run} (Batch size: {self.batch_size})")
+
+                    batch_new_results: list[SingleEvalResult] = common.map_with_progress(process_example, batch_examples, num_threads=5)
+                    self.processed_results.extend(batch_new_results)
+                    
+                    if self.checkpoint_file and batch_new_results:
+                        # Assuming common.save_checkpoint appends the new batch to the file
+                        common.save_checkpoint(self.checkpoint_file, batch_new_results)
+                
+                print(f"Evaluation finished. Processed {len(self.processed_results) - num_already_processed} new results. Total processed now: {len(self.processed_results)} out of {num_total_examples_in_run} examples.")
+
+
+            # Aggregate metrics using all processed results (loaded + newly processed)
+            # The variable 'results' is now self.processed_results
             aggregate_metrics = {
-                "is_correct": sum(result.metrics["is_correct"] for result in results) / len(results),
-                "is_incorrect": sum(result.metrics["is_incorrect"] for result in results) / len(results),
-                "is_not_attempted": sum(result.metrics["is_not_attempted"] for result in results) / len(results),
+                "is_correct": sum(result.metrics["is_correct"] for result in self.processed_results) / len(self.processed_results) if self.processed_results else 0,
+                "is_incorrect": sum(result.metrics["is_incorrect"] for result in self.processed_results) / len(self.processed_results) if self.processed_results else 0,
+                "is_not_attempted": sum(result.metrics["is_not_attempted"] for result in self.processed_results) / len(self.processed_results) if self.processed_results else 0,
             }
             aggregate_metrics["is_given_attempted"] = aggregate_metrics["is_correct"] + aggregate_metrics["is_incorrect"]
             # Calculate accuracy_given_attempted
@@ -188,6 +255,6 @@ class SimpleQAEval(Eval):
             print(f"Accuracy Given Attempted: {output_d['accuracy_given_attempted']:.3f}")
             print(f"F1 Score: {output_d['f1']:.3f}")
             
-            return common.aggregate_results(results)
+            return common.aggregate_results(self.processed_results)
     
 

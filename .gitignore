@@ -130,3 +130,5 @@ dmypy.json
 
 # tmp
 tmp/
+
+.simple_evals_cache/

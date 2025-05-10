@@ -8,6 +8,8 @@ import random
 import re
 import os
 import json
+import pathlib
+import urllib.request
 
 import pandas
 
@@ -82,6 +84,7 @@ subject2category = {
     "world_religions": "humanities",
 }
 
+CACHE_DIR = pathlib.Path(".simple_evals_cache")
 
 class MMLUEval(Eval):
     def __init__(
@@ -95,7 +98,19 @@ class MMLUEval(Eval):
             url = f"https://openaipublic.blob.core.windows.net/simple-evals/mmlu_{language}.csv"
         else:
             url = "https://openaipublic.blob.core.windows.net/simple-evals/mmlu.csv"
-        df = pandas.read_csv(url)
+        
+        CACHE_DIR.mkdir(parents=True, exist_ok=True)
+        file_name = url.split("/")[-1]
+        cached_file_path = CACHE_DIR / file_name
+
+        if cached_file_path.exists():
+            print(f"Loading cached MMLU data from {cached_file_path}")
+            df = pandas.read_csv(cached_file_path)
+        else:
+            print(f"Downloading MMLU data from {url} to {cached_file_path}")
+            urllib.request.urlretrieve(url, str(cached_file_path))
+            df = pandas.read_csv(cached_file_path)
+            
         all_examples_from_csv = [row.to_dict() for _, row in df.iterrows()]
 
         if num_examples is not None and num_examples > 0:

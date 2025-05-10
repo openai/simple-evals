@@ -7,6 +7,8 @@ https://arxiv.org/abs/2210.03057 reference: https://github.com/google-research/u
 
 import re
 from typing import Optional
+import pathlib
+import urllib.request
 
 import common
 from mmlu_eval import HTML_JINJA
@@ -79,6 +81,7 @@ LANG_TO_ANSWER_PREFIX = {
     "zh": "答案",
 }
 
+CACHE_DIR = pathlib.Path(".simple_evals_cache")
 
 def parse_answer(answer: str, answer_prefix: str) -> str:
     if answer_prefix not in answer:
@@ -106,14 +109,25 @@ def score_mgsm(target: str, prediction: str) -> bool:
 
 def get_lang_examples(lang: str) -> list[dict[str, str]]:
     fpath = LANG_TO_FPATH[lang]
+    CACHE_DIR.mkdir(parents=True, exist_ok=True)
+    file_name = fpath.split("/")[-1]
+    cached_file_path = CACHE_DIR / file_name
+
+    if not cached_file_path.exists():
+        print(f"Downloading MGSM data for lang '{lang}' from {fpath} to {cached_file_path}")
+        urllib.request.urlretrieve(fpath, str(cached_file_path))
+    else:
+        print(f"Loading cached MGSM data for lang '{lang}' from {cached_file_path}")
+
     examples = []
-    with common.url_to_fileobj(fpath, binary=True) as f:
-        for raw_line in f:
-            line = raw_line.decode("utf-8").strip()
+    with open(cached_file_path, "r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
             inputs, targets = line.split("\t")
             if "." in targets:
                 raise ValueError(f"targets {targets} contains a decimal point.")
-            # targets = int(targets.replace(",", ""))
             examples.append({"inputs": inputs, "targets": targets, "lang": lang})
     return examples
 
