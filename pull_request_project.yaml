@@ -1,0 +1,91 @@
+# ──────────────────────────────────────────────
+#  4 o-shock mitigation PR project definition
+#  (Plan A = testbed, Plan B = metrics)
+# ──────────────────────────────────────────────
+project:
+  name: "4o_shock_mitigation"
+  repo: "openai/simple-evals"
+  owner: "Yuu6798"
+  description: |
+    Two-phase initiative to detect / suppress the “4 o shock” drift
+    in OpenAI models.  Plan A builds an ultra-light local harness to
+    gather real numbers; Plan B contributes new semantic metrics via
+    small, review-friendly pull requests.
+
+plans:
+  plan_a:
+    title: "Lightweight testbed & data capture"
+    status: "in_progress"
+    progress: 0.30          # 30 %
+    goals:
+      - Termux-friendly one-shot bootstrap (no external deps).
+      - Rapid generation of evaluation samples (SycoQA stub).
+      - Dump raw traces & proto-metrics for threshold tuning.
+    tasks:
+      - id: A-1
+        title: "Safe Chat middleware"
+        desc:  "Inject web.search citation + self-check into stub."
+        status: "todo"
+        estimate_h: 2
+      - id: A-2
+        title: "Artifact bundler"
+        desc:  "Zip JSONL runs & upload as CI artifacts."
+        status: "todo"
+        estimate_h: 1
+      - id: A-3
+        title: "CI README autogen"
+        desc:  "Call generate_readme.py at workflow start."
+        status: "in_progress"
+        estimate_h: 0.5
+
+  plan_b:
+    title: "Metric line-item PRs"
+    status: "draft"
+    goals:
+      - Introduce semantic-aware scorers that reveal drift.
+      - Ship each scorer + tests + docs as an isolated PR.
+    tasks:
+      - id: B-1
+        pr_title: "feat: add por_spike_scorer"
+        metric:   "por_spike"
+        status:   "todo"
+        depends_on: []
+        estimate_h: 1
+      - id: B-2
+        pr_title: "feat: add delta_e_scorer"
+        metric:   "delta_e"
+        status:   "todo"
+        depends_on: ["B-1"]
+        estimate_h: 1
+      - id: B-3
+        pr_title: "feat: add grv_field_scorer"
+        metric:   "grv_field"
+        status:   "todo"
+        depends_on: ["B-2"]
+        estimate_h: 2
+      - id: B-4
+        pr_title: "chore: aggregate_risk_score"
+        metric:   "risk_mix"
+        status:   "todo"
+        depends_on: ["B-1", "B-2", "B-3"]
+        estimate_h: 1
+      - id: B-5
+        pr_title: "docs: README_Metrics"
+        metric:   "docs"
+        status:   "todo"
+        depends_on: ["B-4"]
+        estimate_h: 1
+
+metrics:                      # threshold sandbox
+  por_spike:
+    desc:  "Probability of excessive PoR firing"
+    threshold: 0.80
+  delta_e:
+    desc:  "Energy drift between repeated generations"
+    threshold_sigma: 2
+  grv_field:
+    desc:  "Lexical gravity depth over baseline"
+    threshold: 0.30
+  risk_mix:
+    formula: "0.4*por_spike + 0.3*delta_e_norm + 0.3*grv_field_norm"
+    cutoff: 0.65

@@ -372,3 +372,15 @@ def url_to_fileobj(url: str, binary=False) -> Any:
     response = requests.get(url)
     response.raise_for_status()
     return io.BytesIO(response.content) if binary else io.StringIO(response.text)
+
+from sentence_transformers import SentenceTransformer, util
+_model = SentenceTransformer("all-MiniLM-L6-v2")
+
+def semantic_match(ref: str, pred: str) -> float:
+    if ref.strip() not in pred.strip():
+        return 0.0
+    sim = util.cos_sim(
+        _model.encode([ref])[0],
+        _model.encode([pred])[0]
+    ).item()
+    return max(0.0, (sim - 0.2) * 1.25)  # drift > 0.2 → 減点
