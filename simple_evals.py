@@ -19,6 +19,7 @@ from sampler.chat_completion_sampler import (
 from sampler.o_chat_completion_sampler import OChatCompletionSampler
 from sampler.responses_sampler import ResponsesSampler
 from sampler.claude_sampler import ClaudeCompletionSampler, CLAUDE_SYSTEM_MESSAGE_LMSYS
+from sampler.gemini_sampler import GeminiSampler
 
 
 def main():
@@ -159,7 +160,17 @@ def main():
             model="meta/llama-4-maverick-17b-128e-instruct-maas",
             system_message=OPENAI_SYSTEM_MESSAGE_API,
             base_url="https://us-east5-aiplatform.googleapis.com/v1/projects/lab-eas-gcp-eval/locations/us-east5/endpoints/openapi"
-        )
+        ),
+        "gemini-2.5-pro-preview-05-06": GeminiSampler(
+            model="gemini-2.5-pro-preview-05-06",
+            project_id="lab-eas-gcp-eval",
+            location="us-central1",
+        ),
+        "gemini-2.0-flash-001": GeminiSampler(
+            model="gemini-2.0-flash-001",
+            project_id="lab-eas-gcp-eval",
+            location="us-central1",
+        ),
     }
 
     if args.list_models:

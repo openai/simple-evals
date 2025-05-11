@@ -1,14 +1,19 @@
-import re
-text1 = "To determine the correct answer, let's analyze each option in the context of characteristics of all living organisms.\n\nA) Move from place to place - Not all living organisms can move from place to place. For example, plants and some microorganisms are generally immobile.\n\nB) Detect and respond to changes in the environment - All living organisms have the ability to detect and respond to changes in their environment. This is a fundamental characteristic of life, as it allows organisms to adapt and survive.\n\nC) Produce sugars by photosynthesis - Not all living organisms can produce sugars by photosynthesis. This ability is primarily found in plants, algae, and some bacteria. Many other organisms, including animals and some microorganisms, cannot perform photosynthesis.\n\nD) Produce heat to maintain a constant internal temperature - This characteristic is known as endothermy and is not a feature of all living organisms. Many organisms, including most plants, fish, and reptiles, are ectothermic, meaning their body temperature is regulated by the environment.\n\nGiven the above analysis, the characteristic that is common to all living organisms is the ability to detect and respond to changes in the environment.\n\nAnswer: B"
-
-MULTILINGUAL_ANSWER_PATTERN_TEMPLATE = (
-    "(?i){}[ \t]*([A-D]|[أ-د]|[অ]|[ব]|[ড]|[ঢ]|[Ａ]|[Ｂ]|[Ｃ]|[Ｄ])"
+from google import genai
+from google.genai import types
+client = genai.Client(
+  vertexai=True, project="lab-eas-gcp-eval", location="us-central1",
 )
-MULTILINGUAL_ANSWER_REGEXES = r"Answer\s*:"
-regex = MULTILINGUAL_ANSWER_PATTERN_TEMPLATE.format(MULTILINGUAL_ANSWER_REGEXES)
-
-match = re.search(regex, text1)
-if match:
-    print(match.group(1))
-else:
-    print("No match found")
+# If your image is stored in Google Cloud Storage, you can use the from_uri class method to create a Part object.
+IMAGE_URI = "gs://generativeai-downloads/images/scones.jpg"
+model = "gemini-2.5-pro-preview-05-06"
+response = client.models.generate_content(
+  model=model,
+  contents=[
+    "What is shown in this image?",
+    types.Part.from_uri(
+      file_uri=IMAGE_URI,
+      mime_type="image/png",
+    ),
+  ],
+)
+print(response.text, end="")

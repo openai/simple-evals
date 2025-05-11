@@ -1,8 +1,13 @@
 import base64
 import time
 import os
+
+os.environ["HTTP_PROXY"] = "http://localhost:1080"
+os.environ["HTTPS_PROXY"] = "http://localhost:1080"
+
 import subprocess
 from typing import Any
+from datetime import datetime, timedelta
 
 import openai
 from openai import OpenAI
@@ -30,34 +35,42 @@ class ChatCompletionSampler(SamplerBase):
         base_url: str | None = None,
     ):
         self.api_key_name = "OPENAI_API_KEY"
-        api_key = os.environ.get(self.api_key_name)
+        self.api_key = os.environ.get(self.api_key_name)
         self.base_url = base_url
-        if not api_key and self.base_url:
-            try:
-                print("OPENAI_API_KEY not found, attempting to fetch token from gcloud.")
-                result = subprocess.run(
-                    "gcloud auth print-access-token",
-                    capture_output=True,
-                    text=True,
-                    check=True,
-                    shell=True # Using shell=True for compatibility, consider security implications
-                )
-                api_key = result.stdout.strip()
-            except FileNotFoundError:
-                print("gcloud command not found. Please ensure gcloud SDK is installed and in your PATH.")
-                api_key = None  # Or handle as an error
-            except subprocess.CalledProcessError as e:
-                print(f"Error fetching token from gcloud: {e}")
-                api_key = None # Or handle as an error
-        elif not api_key:
-            api_key = ""
-
-        self.client = OpenAI(api_key=api_key, base_url=self.base_url)
+        self.token_expiry = None
+        self._refresh_token_if_needed()
+        self.client = OpenAI(api_key=self.api_key, base_url=self.base_url)
         self.model = model
         self.system_message = system_message
         self.temperature = temperature
         self.max_tokens = max_tokens
         self.image_format = "url"
+
+    def _refresh_token_if_needed(self):
+        """Refresh the Google Cloud token if it's expired or about to expire (within 5 minutes)"""
+        if not self.api_key and self.base_url:
+            current_time = datetime.now()
+            if not self.token_expiry or current_time + timedelta(minutes=5) >= self.token_expiry:
+                try:
+                    print("Fetching new token from gcloud.")
+                    result = subprocess.run(
+                        "gcloud auth print-access-token",
+                        capture_output=True,
+                        text=True,
+                        check=True,
+                        shell=True
+                    )
+                    self.api_key = result.stdout.strip()
+                    # Set token expiry to 55 minutes from now (giving 5-minute buffer)
+                    self.token_expiry = current_time + timedelta(minutes=55)
+                except FileNotFoundError:
+                    print("gcloud command not found. Please ensure gcloud SDK is installed and in your PATH.")
+                    self.api_key = None
+                except subprocess.CalledProcessError as e:
+                    print(f"Error fetching token from gcloud: {e}")
+                    self.api_key = None
+        elif not self.api_key:
+            self.api_key = ""
 
     def _handle_image(
         self, image: str, encoding: str = "base64", format: str = "png", fovea: int = 768
@@ -82,6 +95,11 @@ class ChatCompletionSampler(SamplerBase):
         trial = 0
         while True:
             try:
+                # Refresh token if needed before making the API call
+                self._refresh_token_if_needed()
+                # Update client with potentially new token
+                self.client = OpenAI(api_key=self.api_key, base_url=self.base_url)
+                
                 response = self.client.chat.completions.create(
                     model=self.model,
                     messages=message_list,
