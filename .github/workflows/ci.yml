@@ -4,9 +4,9 @@ on: [push, pull_request]
 jobs:
   smoke:
     runs-on: ubuntu-latest
-    # 👇 ここでダミーキーを全ステップに渡す
+
     env:
-      OPENAI_API_KEY: "dummy"   # サンプルテスト用。実際の呼び出しは行わない
+      OPENAI_API_KEY: "dummy"   
     steps:
       - uses: actions/checkout@v4
 
