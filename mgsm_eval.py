@@ -10,7 +10,7 @@ from typing import Optional
 
 from . import common
 from .mmlu_eval import HTML_JINJA
-from .types import Eval, EvalResult, SamplerBase, SingleEvalResult
+from .eval_types import Eval, EvalResult, SamplerBase, SingleEvalResult
 
 ALL_LANGUAGES = ["bn", "de", "en", "es", "fr", "ja", "ru", "sw", "te", "th", "zh"]
 LATIN_LANGUAGES = ["de", "en", "es", "fr", "sw"]
