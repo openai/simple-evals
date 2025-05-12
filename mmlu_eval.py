@@ -100,7 +100,10 @@ class MMLUEval(Eval):
                     content=format_multichoice_question(row), role="user"
                 )
             ]
-            response_text = normalize_response(sampler(prompt_messages))
+            sampler_response = sampler(prompt_messages)
+            response_text = sampler_response.response_text
+            actual_queried_prompt_messages = sampler_response.actual_queried_message_list
+            response_text = normalize_response(response_text)
             extracted_answer = None
             for answer_regex in MULTILINGUAL_ANSWER_REGEXES:
                 regex = MULTILINGUAL_ANSWER_PATTERN_TEMPLATE.format(answer_regex)
@@ -110,13 +113,13 @@ class MMLUEval(Eval):
                     break
             score = 1.0 if extracted_answer == row["Answer"] else 0.0
             html = common.jinja_env.from_string(HTML_JINJA).render(
-                prompt_messages=prompt_messages,
+                prompt_messages=actual_queried_prompt_messages,
                 next_message=dict(content=response_text, role="assistant"),
                 score=score,
                 correct_answer=row["Answer"],
                 extracted_answer=extracted_answer,
             )
-            convo = prompt_messages + [dict(content=response_text, role="assistant")]
+            convo = actual_queried_prompt_messages + [dict(content=response_text, role="assistant")]
             category = subject2category.get(row["Subject"], "other")
             return SingleEvalResult(
                 html=html, score=score, metrics={category: score}, convo=convo

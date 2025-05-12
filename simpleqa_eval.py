@@ -119,7 +119,8 @@ class SimpleQAEval(Eval):
         prompt_messages = [
             self.grader_model._pack_message(content=grader_prompt, role="user")
         ]
-        grading_response = self.grader_model(prompt_messages)
+        sampler_response = self.grader_model(prompt_messages)   
+        grading_response = sampler_response.response_text
         
         match = re.search(r"(A|B|C)", grading_response)
         return match.group(0) if match else "C"  # Default to "NOT_ATTEMPTED" if no match
@@ -129,7 +130,9 @@ class SimpleQAEval(Eval):
                 prompt_messages = [
                     sampler._pack_message(content=row.get("problem", ""), role="user")
                 ]
-                response_text = sampler(prompt_messages)
+                sampler_response = sampler(prompt_messages)
+                response_text = sampler_response.response_text
+                actual_queried_prompt_messages = sampler_response.actual_queried_message_list
                 grade_letter = self.grade_sample(row.get("problem", ""), row.get("answer", ""), response_text)
                 
                 # Metrics based on grading response
@@ -141,13 +144,13 @@ class SimpleQAEval(Eval):
 
                 # Create HTML for each sample result
                 html = common.jinja_env.from_string(common.HTML_JINJA).render(
-                    prompt_messages=prompt_messages,
+                    prompt_messages=actual_queried_prompt_messages,
                     next_message=dict(content=response_text, role="assistant"),
                     score=score,
                     correct_answer=row["answer"],
                     extracted_answer=response_text,
                 )
-                convo = prompt_messages + [dict(content=response_text, role="assistant")]
+                convo = actual_queried_prompt_messages + [dict(content=response_text, role="assistant")]
                 return SingleEvalResult(html=html, score=score, convo=convo, metrics={
                     "is_correct": is_correct,
                     "is_incorrect": is_incorrect,
