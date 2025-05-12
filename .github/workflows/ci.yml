@@ -4,6 +4,9 @@ on: [push, pull_request]
 jobs:
   smoke:
     runs-on: ubuntu-latest
+    # 👇 ここでダミーキーを全ステップに渡す
+    env:
+      OPENAI_API_KEY: "dummy"   # サンプルテスト用。実際の呼び出しは行わない
     steps:
       - uses: actions/checkout@v4
 
@@ -13,9 +16,7 @@ jobs:
 
       - run: |
           python -m pip install --upgrade pip
-          # プロジェクト依存 (openai 含む) + pytest をインストール
-          pip install -e . pytest
-
+          pip install -e . pytest       # openai は pyproject.toml で解決
       - run: pytest -q tests/smoke
 
   full:
@@ -30,9 +31,9 @@ jobs:
 
       - run: |
           python -m pip install --upgrade pip
-          # 追加オプション依存 (full) + pytest
           pip install -e .[full] pytest
 
+      # 本テストでは実際に API を呼び出すのでシークレットを使用
       - env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: pytest -q
