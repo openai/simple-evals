@@ -33,7 +33,6 @@ jobs:
           python -m pip install --upgrade pip
           pip install -e .[full] pytest
 
-      # 本テストでは実際に API を呼び出すのでシークレットを使用
       - env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: pytest -q
