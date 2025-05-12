@@ -1,8 +1,10 @@
 import time
+import os
 
 import anthropic
 
-from ..types import MessageList, SamplerBase
+from ..types import MessageList, SamplerBase, SamplerResponse
+from .. import common
 
 CLAUDE_SYSTEM_MESSAGE_LMSYS = (
     "The assistant is Claude, created by Anthropic. The current date is "
@@ -22,20 +24,16 @@ CLAUDE_SYSTEM_MESSAGE_LMSYS = (
 
 
 class ClaudeCompletionSampler(SamplerBase):
-    """
-    Sample from Claude API
-    """
 
     def __init__(
         self,
-        model: str = "claude-3-opus-20240229",
+        model: str,
         system_message: str | None = None,
         temperature: float = 0.0,  # default in Anthropic example
-        max_tokens: int = 1024,
+        max_tokens: int = 4096,
     ):
-        self.api_key_name = "ANTHROPIC_API_KEY"
         self.client = anthropic.Anthropic()
-        # using api_key=os.environ.get("ANTHROPIC_API_KEY") # please set your API_KEY
+        self.api_key = os.environ.get("ANTHROPIC_API_KEY")  # please set your API_KEY
         self.model = model
         self.system_message = system_message
         self.temperature = temperature
@@ -43,7 +41,11 @@ class ClaudeCompletionSampler(SamplerBase):
         self.image_format = "base64"
 
     def _handle_image(
-        self, image: str, encoding: str = "base64", format: str = "png", fovea: int = 768
+        self,
+        image: str,
+        encoding: str = "base64",
+        format: str = "png",
+        fovea: int = 768,
     ):
         new_image = {
             "type": "image",
@@ -61,18 +63,35 @@ class ClaudeCompletionSampler(SamplerBase):
     def _pack_message(self, role, content):
         return {"role": str(role), "content": content}
 
-    def __call__(self, message_list: MessageList) -> str:
+    def __call__(self, message_list: MessageList) -> SamplerResponse:
         trial = 0
         while True:
             try:
-                message = self.client.messages.create(
-                    model=self.model,
-                    system=self.system_message,
-                    max_tokens=self.max_tokens,
-                    temperature=self.temperature,
-                    messages=message_list,
+                if not common.has_only_user_assistant_messages(message_list):
+                    raise ValueError(f"Claude sampler only supports user and assistant messages, got {message_list}")
+                if self.system_message:
+                    response_message = self.client.messages.create(
+                        model=self.model,
+                        system=self.system_message,
+                        max_tokens=self.max_tokens,
+                        temperature=self.temperature,
+                        messages=message_list,
+                    )
+                    claude_input_messages: MessageList = [{"role": "system", "content": self.system_message}] + message_list
+                else:
+                    response_message = self.client.messages.create(
+                        model=self.model,
+                        max_tokens=self.max_tokens,
+                        temperature=self.temperature,
+                        messages=message_list,
+                    )
+                    claude_input_messages = message_list
+                response_text = response_message.content[0].text
+                return SamplerResponse(
+                    response_text=response_text,
+                    response_metadata={},
+                    actual_queried_message_list=claude_input_messages,
                 )
-                return message.content[0].text
             except anthropic.RateLimitError as e:
                 exception_backoff = 2**trial  # expontial back off
                 print(

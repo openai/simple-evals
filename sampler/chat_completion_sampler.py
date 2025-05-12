@@ -1,11 +1,10 @@
-import base64
 import time
 from typing import Any
 
 import openai
 from openai import OpenAI
 
-from ..types import MessageList, SamplerBase
+from ..types import MessageList, SamplerBase, SamplerResponse
 
 OPENAI_SYSTEM_MESSAGE_API = "You are a helpful assistant."
 OPENAI_SYSTEM_MESSAGE_CHATGPT = (
@@ -36,7 +35,11 @@ class ChatCompletionSampler(SamplerBase):
         self.image_format = "url"
 
     def _handle_image(
-        self, image: str, encoding: str = "base64", format: str = "png", fovea: int = 768
+        self,
+        image: str,
+        encoding: str = "base64",
+        format: str = "png",
+        fovea: int = 768,
     ):
         new_image = {
             "type": "image_url",
@@ -52,9 +55,11 @@ class ChatCompletionSampler(SamplerBase):
     def _pack_message(self, role: str, content: Any):
         return {"role": str(role), "content": content}
 
-    def __call__(self, message_list: MessageList) -> str:
+    def __call__(self, message_list: MessageList) -> SamplerResponse:
         if self.system_message:
-            message_list = [self._pack_message("system", self.system_message)] + message_list
+            message_list = [
+                self._pack_message("system", self.system_message)
+            ] + message_list
         trial = 0
         while True:
             try:
@@ -64,11 +69,22 @@ class ChatCompletionSampler(SamplerBase):
                     temperature=self.temperature,
                     max_tokens=self.max_tokens,
                 )
-                return response.choices[0].message.content
+                content = response.choices[0].message.content
+                if content is None:
+                    raise ValueError("OpenAI API returned empty response; retrying")
+                return SamplerResponse(
+                    response_text=content,
+                    response_metadata={"usage": response.usage},
+                    actual_queried_message_list=message_list,
+                )
             # NOTE: BadRequestError is triggered once for MMMU, please uncomment if you are reruning MMMU
             except openai.BadRequestError as e:
                 print("Bad Request Error", e)
-                return ""
+                return SamplerResponse(
+                    response_text="No response (bad request).",
+                    response_metadata={"usage": None},
+                    actual_queried_message_list=message_list,
+                )
             except Exception as e:
                 exception_backoff = 2**trial  # expontial back off
                 print(
