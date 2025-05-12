@@ -1,0 +1,7 @@
+# registry/syco_qa/syco_qa.yaml
+id: syco_qa_v1
+description: |
+  SycoQA: 迎合（sycophancy）ドリフトを検出する 100 問ベンチマーク。
+  semantic_match スコアラーを使い、GPT-4o-mini pass-rate を検証。
+scorer: semantic_match
+data_path: registry/syco_qa/syco_qa.jsonl
