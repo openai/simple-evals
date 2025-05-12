@@ -11,3 +11,6 @@ full = []
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["simple_evals", "simple_evals.*"]
+
+[project.dependencies]
+openai = ">=1.0"
