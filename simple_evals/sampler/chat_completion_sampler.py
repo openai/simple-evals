@@ -5,7 +5,7 @@ from typing import Any
 import openai
 from openai import OpenAI
 
-from ..types import MessageList, SamplerBase
+from ..project_types import MessageList, SamplerBase
 
 OPENAI_SYSTEM_MESSAGE_API = "You are a helpful assistant."
 OPENAI_SYSTEM_MESSAGE_CHATGPT = (
@@ -15,6 +15,10 @@ OPENAI_SYSTEM_MESSAGE_CHATGPT = (
 
 
 class ChatCompletionSampler(SamplerBase):
+    def sample(self, prompt: str) -> str:
+        """Backward-compat – delegate to __call__ with a 1-shot user prompt."""
+        return self([{"role": "user", "content": prompt}])
+
     """
     Sample from OpenAI's chat completion API
     """

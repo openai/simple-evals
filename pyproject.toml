@@ -1,0 +1,13 @@
+[project]
+name = "simple-evals"
+version = "0.1.0"
+description = "Evaluation utilities"
+authors = [{name = "You"}]
+requires-python = ">=3.9"
+
+[project.optional-dependencies]
+full = []
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["simple_evals", "simple_evals.*"]
