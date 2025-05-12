@@ -1,16 +1,18 @@
 [project]
-name = "simple-evals"
-version = "0.1.0"
-description = "Evaluation utilities"
-authors = [{name = "You"}]
+name            = "simple-evals"
+version         = "0.1.0"
+description     = "Evaluation utilities"
+authors         = [{ name = "You" }]
 requires-python = ">=3.9"
+
+# ───────── 依存関係 ─────────
+dependencies = [
+    "openai>=1.0",
+]
 
 [project.optional-dependencies]
 full = []
 
 [tool.setuptools.packages.find]
-where = ["."]
+where   = ["."]
 include = ["simple_evals", "simple_evals.*"]
-
-[project.dependencies]
-openai = ">=1.0"
