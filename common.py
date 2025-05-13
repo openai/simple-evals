@@ -26,7 +26,7 @@ D) {D}
 ANSWER_PATTERN_MULTICHOICE = r"(?i)Answer[ \t]*:[ \t]*\$?([A-D])\$?"
 ANSWER_PATTERN = r"(?i)Answer\s*:\s*([^\n]+)"
 MULTILINGUAL_ANSWER_PATTERN_TEMPLATE = (
-    "(?i){}[ \t]*([A-D]|[أ-د]|[অ]|[ব]|[ড]|[ঢ]|[Ａ]|[Ｂ]|[Ｃ]|[Ｄ])"
+    "(?i)(?=(?:{}[ \t]*([A-D]|[أ-د]|[অ]|[ব]|[ড]|[ঢ]|[Ａ]|[Ｂ]|[Ｃ]|[Ｄ])))"
 )
 # All the different ways "Answer" is written in different languages
 MULTILINGUAL_ANSWER_REGEXES = [
