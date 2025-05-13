@@ -1,75 +1,45 @@
-Plan-A (SycoBench) — 進捗レポート 2025-05-11 時点
+# Plan-A SycoBench移植プロジェクト：残務タスク
 
-フェーズ	現状	完了したこと	残タスク
-
-0. ブランチ作成<br>plan-a-syco-bench	✅ 完了	• fork 済み・作業ブランチ生成	—
-1. PoC 動作確認<br>ローカル／Termux stub	✅ 完了	• setup_sycoqa_stub.sh で venv + 依存ゼロ実行<br>• SycoQA 全問を DummySampler で走破	—
-2. 正式依存解決	🟡 進行中	• simple_evals 側の構文エラー解消・API KEY 検証済み<br>• OpenAI 経由の実スコア測定に向け 環境／変数 整備	▢ sentence-transformers, torch を extras オプション化<br>▢ ChatCompletionSampler 実装（API KEY 切替対応）<br>▢ requirements.txt / pyproject.toml 整理
-3. コード整理	⏳ 未着手	—	▢ stub & helper を scripts/ に隔離<br>▢ simple_evals/ をクリーンに保つ
-4. CI 組込み	⏳ 未着手	—	▢ GH Actions で smoke-test (stub / full) ワークフロー作成<br>▢ API KEY の注入方法を機密管理
-5. ドキュメント & PR	⏳ 未着手	—	▢ README に SycoBench 概要 & 実行例を追記<br>▢ Upstream へ PR（コード整形・規約準拠）
-
-
+## ✅ これまでに完了したこと
+- [x] `simple-evals` をローカル移植し `plan-a-syco-bench` ブランチで作業開始
+- [x] `ChatCompletionSampler` を正式実装（sample() ラッパー含む）
+- [x] `pyproject.toml` に openai>=1.0 を追加、依存整理
+- [x] smoke / full の2段階 CI ジョブを Actions に統合（gpt-4o 対応）
+- [x] テスト通過を確認（OpenAI API キーの dummy / secrets 切替も成功）
+- [x] README 整理 / コミット粒度整備
 
 ---
 
-進捗率（概算）
+## 🟡 残務タスク（次回以降の再始動に向けて）
 
-フェーズ完了: 2 / 6
+### 🔹 A. リファクタ＆ドキュメント系
+- [ ] `chat_completion_sampler.py` に docstring を追加
+- [ ] `tests/smoke/test_smoke_full.py` に追加ケース（PoR失敗／grv低スコア）を追加
+- [ ] `README.md` に以下を追記  
+  - 追加されたサンプラの説明  
+  - GitHub Actions バッジ  
+  - 必要な依存（openai）
 
-フェーズ進行中: 1
-→ 約 35 % 完了
+### 🔹 B. PR 出力整備（openai/simple-evals 向け）
+- [ ] `CHANGELOG.md` を追加し、`feat: ChatCompletionSampler` 系の記録を明記
+- [ ] `pull_request_project.yaml` がある場合、更新するか不要なら削除
+- [ ] PR テンプレート文（タイトル、本文、関連 Issue など）を生成する
 
-
-
----
-
-直近 TODO（優先度順）
-
-1. 依存・Sampler 実装を固める
-
-ChatCompletionSampler を差し替えて OpenAI 評価が通ることを確認
-
-重量ライブラリを extras に分離、pip install .[full] 方式へ
-
-
-
-2. stub 隔離 & コード整形
-
-scripts/ ディレクトリへ移動、black / ruff でフォーマット
-
-
-
-3. CI スモークテスト
-
-stub と full の 2 job 構成で失敗早期検知
-
-
-
-4. README 更新
-
-最小実行例、環境変数サンプル、スマホ実行 Tips 追加
-
-
-
-5. PR 作成
-
-タイトル・本文テンプレ整備、ラベル・チェックリスト付与
-
-
-
-
+### 🔹 C. SycoQA 拡張ロードマップ着手準備
+- [ ] ΔE（semantic_match）を bge-large に切り替えて再評価
+- [ ] grv（keyword_match）に KeyBERT + TF-IDF 重み付け導入
+- [ ] 発火PoR数を評価出力に含める（文単位分割 or 閾値付きマルチ評価）
+- [ ] UGH3 CSVエクスポート形式への変換準備
 
 ---
 
-補足
+## 🔹 任意・低優先
+- [ ] `tools/` や `agent.yml` を使った GPTme オートランテスト
+- [ ] OpenAIモデル変更（gpt-3.5 比較）向けの簡易切替インターフェース
 
-GPTme エージェント が今後のルーチンを担当予定。
-→ 各タスクを小粒のコマンド／スクリプト単位で切り出して渡すと運用がスムーズです。
+---
 
-OpenAI API KEY は GH Actions の Secrets に登録し、safe_chat でも共有可能な変数名 (OPENAI_API_KEY) に統一すると後工程が楽になります。
-
-
-以上が最新の進捗とタスク整理です。追加･修正があれば指示ください！
-
-
+## 次回開始用メモ
+- [ ] `cd ~/repos/simple-evals`
+- [ ] `git checkout plan-a-syco-bench`
+- [ ] `gptme chat -w ~/jp-agent`（常時日本語応答環境）
