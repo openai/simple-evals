@@ -1,12 +1,11 @@
-import base64
+import os
 import time
 from typing import Any
-import os
 
 import openai
 from openai import OpenAI
 
-from ..types import MessageList, SamplerBase
+from ..types import MessageList, SamplerBase, SamplerResponse
 
 
 class ResponsesSampler(SamplerBase):
@@ -35,7 +34,11 @@ class ResponsesSampler(SamplerBase):
         self.reasoning_effort = reasoning_effort
 
     def _handle_image(
-        self, image: str, encoding: str = "base64", format: str = "png", fovea: int = 768
+        self,
+        image: str,
+        encoding: str = "base64",
+        format: str = "png",
+        fovea: int = 768,
     ) -> dict[str, Any]:
         new_image = {
             "type": "input_image",
@@ -49,14 +52,20 @@ class ResponsesSampler(SamplerBase):
     def _pack_message(self, role: str, content: Any) -> dict[str, Any]:
         return {"role": role, "content": content}
 
-    def __call__(self, message_list: MessageList) -> str:
+    def __call__(self, message_list: MessageList) -> SamplerResponse:
         if self.system_message:
-            message_list = [self._pack_message("developer", self.system_message)] + message_list
+            message_list = [
+                self._pack_message("developer", self.system_message)
+            ] + message_list
         trial = 0
         while True:
             try:
                 if self.reasoning_model:
-                    reasoning = ({"effort": self.reasoning_effort} if self.reasoning_effort else None)
+                    reasoning = (
+                        {"effort": self.reasoning_effort}
+                        if self.reasoning_effort
+                        else None
+                    )
                     response = self.client.responses.create(
                         model=self.model,
                         input=message_list,
@@ -69,10 +78,18 @@ class ResponsesSampler(SamplerBase):
                         temperature=self.temperature,
                         max_output_tokens=self.max_tokens,
                     )
-                return response.output_text
+                return SamplerResponse(
+                    response_text=response.output_text,
+                    response_metadata={"usage": response.usage},
+                    actual_queried_message_list=message_list,
+                )
             except openai.BadRequestError as e:
                 print("Bad Request Error", e)
-                return ""
+                return SamplerResponse(
+                    response_text="",
+                    response_metadata={"usage": None},
+                    actual_queried_message_list=message_list,
+                )
             except Exception as e:
                 exception_backoff = 2**trial  # expontial back off
                 print(

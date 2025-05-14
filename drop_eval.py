@@ -280,7 +280,9 @@ class DropEval(Eval):
 Think step by step, then write a line of the form "Answer: $ANSWER" at the end of your response.
                     """
                     prompt_messages = [sampler._pack_message(content=prompt, role="user")]
-                    response_text = sampler(prompt_messages)
+                    sampler_response = sampler(prompt_messages)
+                    response_text = sampler_response.response_text
+                    actual_queried_prompt_messages = sampler_response.actual_queried_message_list
                     match = re.search(ANSWER_PATTERN, response_text)
                     extracted_answer = match.group(1) if match else response_text
                     em_score, f1_score = drop_metric(extracted_answer, correct_answers)
@@ -293,13 +295,13 @@ Think step by step, then write a line of the form "Answer: $ANSWER" at the end o
                     ]
                     score = True in matches
                     html = common.jinja_env.from_string(HTML_JINJA).render(
-                        prompt_messages=prompt_messages,
+                        prompt_messages=actual_queried_prompt_messages,
                         next_message=dict(content=extracted_answer, role="assistant"),
                         score=score,
                         correct_answer=correct_answers,
                         extracted_answer=extracted_answers,
                     )
-                    convo = prompt_messages + [dict(content=extracted_answer, role="assistant")]
+                    convo = actual_queried_prompt_messages + [dict(content=extracted_answer, role="assistant")]
                     return SingleEvalResult(
                         html=html,
                         score=score,
