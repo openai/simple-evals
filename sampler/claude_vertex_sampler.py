@@ -75,7 +75,75 @@ class ClaudeVertexCompletionSampler(SamplerBase):
     def _pack_message(self, role, content):
         return {"role": str(role), "content": content}
 
+    def _convert_messages(self, message_list: MessageList) -> list[dict]:
+        processed_api_messages = []
+        for original_message in message_list:
+            role = original_message.get("role")
+            content = original_message.get("content")
+
+            if role not in ["user", "assistant"]:
+                print(f"Warning: Skipping message with unsupported role '{role}'. Only 'user' and 'assistant' roles are processed for the 'messages' parameter.")
+                continue
+
+            api_content: str | list = "" # Placeholder, will be updated
+
+            if isinstance(content, str):
+                api_content = content
+            elif isinstance(content, list):
+                api_content_parts = []
+                for part in content:
+                    part_type = part.get("type")
+                    if part_type == "text":
+                        text = part.get("text")
+                        if text:
+                            api_content_parts.append(self._handle_text(text))
+                    elif part_type == "image_url":
+                        image_url_spec = part.get("image_url")
+                        if image_url_spec and "url" in image_url_spec:
+                            image_url_data = image_url_spec["url"]
+                            if image_url_data.startswith("data:image/") and ";base64," in image_url_data:
+                                try:
+                                    header, base64_data = image_url_data.split(",", 1)
+                                    # header is "data:image/<format>;base64"
+                                    mime_part = header.split(":")[1].split(";")[0] # "image/<format>"
+                                    image_format = mime_part.split("/")[1] # "<format>"
+                                    api_content_parts.append(
+                                        self._handle_image(
+                                            image=base64_data,
+                                            encoding="base64",
+                                            format=image_format,
+                                        )
+                                    )
+                                except (ValueError, IndexError) as e:
+                                    print(f"Warning: Could not parse image_url data URI '{image_url_data}': {e}")
+                            else:
+                                print(f"Warning: Unsupported image_url format: {image_url_data}. Expected 'data:image/<format>;base64,<data>'.")
+                        else:
+                            print(f"Warning: Skipping image part with missing or invalid 'image_url' spec: {part}")
+                    else:
+                        print(f"Warning: Skipping unsupported part type '{part_type}' in message content.")
+                
+                if not api_content_parts:
+                    print(f"Warning: Message from role '{role}' resulted in no content parts after processing. Skipping message.")
+                    continue
+                api_content = api_content_parts
+            else:
+                print(f"Warning: Skipping message from role '{role}' with unsupported content type: {type(content)}. Expected str or list.")
+                continue
+            
+            processed_api_messages.append({"role": str(role), "content": api_content})
+
+        return processed_api_messages
+
     def __call__(self, message_list: MessageList) -> str:
+        # Convert the input message_list to the format expected by Anthropic API
+        api_messages = self._convert_messages(message_list)
+
+        if not api_messages:
+            # If, after conversion, there are no messages to send
+            print("Warning: No valid messages to send to Claude API after conversion. Returning empty string.")
+            return ""
+            
         trial = 0
         while True:
             try:
@@ -84,9 +152,16 @@ class ClaudeVertexCompletionSampler(SamplerBase):
                     system=self.system_message,
                     max_tokens=self.max_tokens,
                     temperature=self.temperature,
-                    messages=message_list,
+                    messages=api_messages,  # Use the converted messages
                 )
-                return message.content[0].text
+                # Assuming Claude's response structure provides content in a list,
+                # and we need the text from the first content block.
+                if message.content and isinstance(message.content, list) and len(message.content) > 0 and message.content[0].type == "text":
+                    return message.content[0].text
+                else:
+                    # Handle cases where response might not be as expected or is empty
+                    print(f"Warning: Unexpected response content structure from Claude API: {message.content}")
+                    return "" # Or raise an error, or return a string representation
             except anthropic.RateLimitError as e:
                 exception_backoff = 2**trial  # expontial back off
                 print(
