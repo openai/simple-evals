@@ -20,6 +20,7 @@ from sampler.o_chat_completion_sampler import OChatCompletionSampler
 from sampler.responses_sampler import ResponsesSampler
 from sampler.claude_sampler import ClaudeCompletionSampler, CLAUDE_SYSTEM_MESSAGE_LMSYS
 from sampler.gemini_sampler import GeminiSampler
+from sampler.claude_vertex_sampler import ClaudeVertexCompletionSampler
 
 
 def main():
@@ -46,6 +47,11 @@ def main():
         type=str,
         help="Directory to store and load checkpoint files for each eval. If not provided, checkpointing is disabled.",
         default=None,
+    )
+    parser.add_argument(
+        "--use-gemini-grounding",
+        action="store_true",
+        help="Enable Gemini grounding API for Gemini models."
     )
 
     args = parser.parse_args()
@@ -165,12 +171,19 @@ def main():
             model="gemini-2.5-pro-preview-05-06",
             project_id="lab-eas-gcp-eval",
             location="us-central1",
+            use_gemini_grounding=args.use_gemini_grounding,
         ),
         "gemini-2.0-flash-001": GeminiSampler(
             model="gemini-2.0-flash-001",
             project_id="lab-eas-gcp-eval",
             location="us-central1",
+            use_gemini_grounding=args.use_gemini_grounding,
         ),
+        # "claude-3-7-sonnet": ClaudeVertexCompletionSampler(
+        #     model="claude-3-7-sonnet@20250219",
+        #     project_id="lab-eas-gcp-eval",
+        #     location="us-east5",
+        # ),
     }
 
     if args.list_models:

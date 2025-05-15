@@ -23,11 +23,13 @@ class GeminiSampler(SamplerBase):
         project_id: str | None = None,
         location: str = "us-central1",
         api_key: str | None = None,
+        use_gemini_grounding: bool = False,
     ):
         self.project_id = project_id
         self.location = location
         self.api_key = api_key or os.environ.get("GOOGLE_API_KEY")
         self.token_expiry = None
+        self.use_gemini_grounding = use_gemini_grounding
         # self._refresh_token_if_needed()
         
         # Initialize the Gemini client
@@ -140,14 +142,27 @@ class GeminiSampler(SamplerBase):
                     print("Warning: No content to send after message conversion. Returning empty string.")
                     return ""
 
+                generation_config = {
+                    "temperature": self.temperature,
+                    "max_output_tokens": self.max_tokens,
+                }
+
+                if self.use_gemini_grounding:
+                    from google.genai.types import Tool, GenerateContentConfig, GoogleSearch
+                    google_search_tool = Tool(
+                        google_search = GoogleSearch()
+                    )
+
+                    print("INFO: Gemini grounding is enabled (conceptual).")
+                    generation_config["tools"] = [google_search_tool]
+                    # generation_config["google_search"] = GoogleSearch()
+
                 response = self.client.models.generate_content(
                     model=self.model,
                     contents=contents,
-                    config={
-                        "temperature": self.temperature,
-                        "max_output_tokens": self.max_tokens,
-                    }
+                    config=generation_config,
                 )
+                # print(response.candidates[0].grounding_metadata.search_entry_point.rendered_content)
                 return response.text
             except Exception as e:
                 print(f"Error during API call (trial {trial+1}): {e}")
