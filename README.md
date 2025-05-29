@@ -89,23 +89,31 @@ Make sure to set the `*_API_KEY` environment variables before using these APIs.
 
 ## Setup
 
-Due to the optional dependencies, we're not providing a unified setup mechanism. Instead, we're providing instructions for each eval and sampler.
+You can install the package in development mode using pip:
 
-For [HumanEval](https://github.com/openai/human-eval/) (python programming)
 ```bash
+# Clone the repository
+git clone https://github.com/openai/simple-evals
+cd simple-evals
+
+# Install the package in development mode
+pip install -e .
+
+# If you want to run HumanEval benchmarks, also install:
+pip install -e ".[humaneval]"
 git clone https://github.com/openai/human-eval
 pip install -e human-eval
 ```
 
-For the [OpenAI API](https://pypi.org/project/openai/):
-```bash
-pip install openai
-```
+The package has the following optional dependencies that will be installed automatically when needed:
 
-For the [Anthropic API](https://docs.anthropic.com/claude/docs/quickstart-guide):
-```bash
-pip install anthropic
-```
+- [OpenAI API](https://pypi.org/project/openai/): For evaluating OpenAI models
+- [Anthropic API](https://docs.anthropic.com/claude/docs/quickstart-guide): For evaluating Claude models
+- [HumanEval](https://github.com/openai/human-eval/): For running Python programming evaluations
+
+Make sure to set the appropriate API keys as environment variables before using the respective APIs:
+- `OPENAI_API_KEY` for OpenAI models
+- `ANTHROPIC_API_KEY` for Claude models
 
 ## Running the evals
 ```bash

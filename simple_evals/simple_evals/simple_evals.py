@@ -133,7 +133,7 @@ def main():
         ),
         # GPT-4.1 models
         "gpt-4.1": ChatCompletionSampler(
-            model="gpt-4.1-2025-04-14",
+            model="openai-gpt-4.1",
             system_message=OPENAI_SYSTEM_MESSAGE_API,
             max_tokens=2048,
         ),
@@ -222,6 +222,22 @@ def main():
             system_message=OPENAI_SYSTEM_MESSAGE_CHATGPT,
         ),
         # Claude models:
+        "claude-4-opus": ChatCompletionSampler(
+            model="claude-4-opus",
+            system_message=CLAUDE_SYSTEM_MESSAGE_LMSYS,
+        ),
+        "claude-4-sonnet": ChatCompletionSampler(
+            model="claude-4-opus",
+            system_message=CLAUDE_SYSTEM_MESSAGE_LMSYS,
+        ),
+        "claude-3-7-sonnet": ChatCompletionSampler(
+            model="claude-3-7-sonnet",
+            system_message=CLAUDE_SYSTEM_MESSAGE_LMSYS,
+        ),
+        "claude-3-5-sonnet": ChatCompletionSampler(
+            model="claude-3-5-sonnet",
+            system_message=CLAUDE_SYSTEM_MESSAGE_LMSYS,
+        ),
         "claude-3-opus-20240229_empty": ClaudeCompletionSampler(
             model="claude-3-opus-20240229",
             system_message=CLAUDE_SYSTEM_MESSAGE_LMSYS,
