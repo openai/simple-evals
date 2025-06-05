@@ -179,11 +179,11 @@ def main():
             location="us-central1",
             use_gemini_grounding=args.use_gemini_grounding,
         ),
-        # "claude-3-7-sonnet": ClaudeVertexCompletionSampler(
-        #     model="claude-3-7-sonnet@20250219",
-        #     project_id="{your-project-id}",
-        #     location="us-east5",
-        # ),
+        "claude-3-7-sonnet": ClaudeVertexCompletionSampler(
+            model="claude-3-7-sonnet@20250219",
+            project_id="{your-project-id}",
+            location="us-east5",
+        ),
     }
 
     if args.list_models:
