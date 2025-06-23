@@ -27,6 +27,7 @@ The rest was originally copied from https://github.com/allenai/allennlp-reading-
 /eval/drop_eval.py
 """
 
+# hellp wprl
 
 def _remove_articles(text: str) -> str:
     regex = re.compile(r"\b(a|an|the)\b", re.UNICODE)
