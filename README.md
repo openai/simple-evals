@@ -1,9 +1,12 @@
+# ⚠️ Deprecation Notice
+
+**July 2025**: `simple-evals` will no longer be updated for new models or benchmark results. The repo will continue to host reference implementations for **HealthBench**, **BrowseComp**, and **SimpleQA**.
+
+---
+
 # Overview
 This repository contains a lightweight library for evaluating language models.
 We are open sourcing it so we can be transparent about the accuracy numbers we're publishing alongside our latest models.
-
-> ⚠️ **Deprecation Notice for Eval Results– July 2025**
-> `simple-evals` will no longer be updated for new models or benchmark results. The repo will continue to host reference implementations for **HealthBench**, **BrowseComp**, and **SimpleQA**.
 
 ## Benchmark Results
 
