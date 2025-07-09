@@ -2,6 +2,9 @@
 This repository contains a lightweight library for evaluating language models.
 We are open sourcing it so we can be transparent about the accuracy numbers we're publishing alongside our latest models.
 
+> ⚠️ **Deprecation Notice for Eval Results– July 2025**
+> `simple-evals` will no longer be updated for new models or benchmark results. The repo will continue to host reference implementations for **HealthBench**, **BrowseComp**, and **SimpleQA**.
+
 ## Benchmark Results
 
 | Model                        | Prompt        | MMLU   | GPQA [^8]   | MATH [^6]| HumanEval | MGSM[^5] | DROP[^5]<br>(F1, 3-shot) | SimpleQA
