@@ -257,7 +257,7 @@ def main():
         models_chosen = args.model.split(",")
         for model_name in models_chosen:
             if model_name not in models:
-                print(f"Error: Model '{model_name}' not found. Using custom config")
+                print(f"Warning: Model '{model_name}' not found. Using custom config")
                 models[model_name] = ChatCompletionSampler(
                     model=model_name,
                     temperature=0.0,
