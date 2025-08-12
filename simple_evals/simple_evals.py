@@ -66,6 +66,12 @@ def main():
         default=None,
         help="Save results here.",
     )
+    parser.add_argument(
+        "--max-tokens",
+        type=int,
+        default=2048,
+        help="Max tokens. Valid only when custom model.",
+    )
 
     args = parser.parse_args()
 
@@ -243,7 +249,7 @@ def main():
         "custom": ChatCompletionSampler(
             model="custom",
             temperature=0.0,
-            max_tokens=2048,
+            max_tokens=args.max_tokens,
         ),
     }
 
@@ -261,7 +267,7 @@ def main():
                 models[model_name] = ChatCompletionSampler(
                     model=model_name,
                     temperature=0.0,
-                    max_tokens=2048,
+                    max_tokens=args.max_tokens,
                 )
         models = {model_name: models[model_name] for model_name in models_chosen}
 
