@@ -257,8 +257,12 @@ def main():
         models_chosen = args.model.split(",")
         for model_name in models_chosen:
             if model_name not in models:
-                print(f"Error: Model '{model_name}' not found.")
-                return
+                print(f"Error: Model '{model_name}' not found. Using custom config")
+                models[model_name] = ChatCompletionSampler(
+                    model=model_name,
+                    temperature=0.0,
+                    max_tokens=2048,
+                )
         models = {model_name: models[model_name] for model_name in models_chosen}
 
     print(f"Running with args {args}")
@@ -388,7 +392,7 @@ def main():
         for eval_name, eval_obj in evals.items():
             result = eval_obj(sampler)
             # ^^^ how to use a sampler
-            file_stem = f"{eval_name}_{model_name}"
+            file_stem = f"{eval_name}_{model_name.replace('/', '-')}"
             # file stem should also include the year, month, day, and time in hours and minutes
             file_stem += f"_{date_str}"
             report_filename = f"{result_dir}/{file_stem}{debug_suffix}.html"
