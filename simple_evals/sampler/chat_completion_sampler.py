@@ -24,6 +24,7 @@ class ChatCompletionSampler(SamplerBase):
         system_message: str | None = None,
         temperature: float = 0.5,
         max_tokens: int = 1024,
+        max_retry: int = 10,
     ):
         self.api_key_name = "OPENAI_API_KEY"
         self.client = OpenAI()
@@ -33,6 +34,7 @@ class ChatCompletionSampler(SamplerBase):
         self.temperature = temperature
         self.max_tokens = max_tokens
         self.image_format = "url"
+        self.max_retry = max_retry
 
     def _handle_image(
         self,
@@ -70,10 +72,11 @@ class ChatCompletionSampler(SamplerBase):
                     max_tokens=self.max_tokens,
                 )
                 content = response.choices[0].message.content
-                if content is None:
+                reasoning_content = response.choices[0].message.reasoning_content
+                if content is None and reasoning_content is None:
                     raise ValueError("OpenAI API returned empty response; retrying")
                 return SamplerResponse(
-                    response_text=content,
+                    response_text=content or reasoning_content,
                     response_metadata={"usage": response.usage},
                     actual_queried_message_list=message_list,
                 )
@@ -86,6 +89,12 @@ class ChatCompletionSampler(SamplerBase):
                     actual_queried_message_list=message_list,
                 )
             except Exception as e:
+                if trial > max_retry:
+                    return SamplerResponse(
+                        response_text=f"No response ({e}).",
+                        response_metadata={"usage": None},
+                        actual_queried_message_list=message_list,
+                    )
                 exception_backoff = 2**trial  # expontial back off
                 print(
                     f"Rate limit exception so wait and retry {trial} after {exception_backoff} sec",
