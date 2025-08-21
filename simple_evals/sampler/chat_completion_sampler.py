@@ -72,7 +72,11 @@ class ChatCompletionSampler(SamplerBase):
                     max_tokens=self.max_tokens,
                 )
                 content = response.choices[0].message.content
-                reasoning_content = response.choices[0].message.reasoning_content
+                reasoning_content = (
+                    response.choices[0].message.reasoning_content if hasattr(
+                        response.choices[0].message, "reasoning_content"
+                    ) else None
+                )
                 if content is None and reasoning_content is None:
                     raise ValueError("OpenAI API returned empty response; retrying")
                 return SamplerResponse(
@@ -89,7 +93,7 @@ class ChatCompletionSampler(SamplerBase):
                     actual_queried_message_list=message_list,
                 )
             except Exception as e:
-                if trial > max_retry:
+                if trial > self.max_retry:
                     return SamplerResponse(
                         response_text=f"No response ({e}).",
                         response_metadata={"usage": None},
