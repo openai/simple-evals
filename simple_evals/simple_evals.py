@@ -76,7 +76,7 @@ def main():
         "--temperature",
         type=float,
         default=0.0,
-        help="temperature (default 0). Valid only when custom model.",
+        help="Temperature (default 0). Valid only when custom model.",
     )
 
     args = parser.parse_args()
