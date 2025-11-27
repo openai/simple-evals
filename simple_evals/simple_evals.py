@@ -72,6 +72,12 @@ def main():
         default=2048,
         help="Max tokens. Valid only when custom model.",
     )
+    parser.add_argument(
+        "--temperature",
+        type=float,
+        default=0.0,
+        help="temperature (default 0). Valid only when custom model.",
+    )
 
     args = parser.parse_args()
 
@@ -246,11 +252,6 @@ def main():
         "claude-3-haiku-20240307": ClaudeCompletionSampler(
             model="claude-3-haiku-20240307",
         ),
-        "custom": ChatCompletionSampler(
-            model="custom",
-            temperature=0.0,
-            max_tokens=args.max_tokens,
-        ),
     }
 
     if args.list_models:
@@ -266,7 +267,7 @@ def main():
                 print(f"Warning: Model '{model_name}' not found. Using custom config")
                 models[model_name] = ChatCompletionSampler(
                     model=model_name,
-                    temperature=0.0,
+                    temperature=args.temperature,
                     max_tokens=args.max_tokens,
                 )
         models = {model_name: models[model_name] for model_name in models_chosen}
