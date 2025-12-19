@@ -219,7 +219,7 @@ def aggregate_results(
 def map_with_progress(
     f: Callable,
     xs: list[Any],
-    num_threads: int = os.cpu_count() or 10,
+    num_threads: int = 32,
     pbar: bool = True,
 ):
     """
