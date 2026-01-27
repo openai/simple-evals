@@ -13,11 +13,12 @@ from typing import Literal
 
 import blobfile as bf
 
-from . import common
-from .healthbench_eval import GRADER_TEMPLATE, parse_json_to_dict
-from .types import Eval, EvalResult, SamplerBase, SingleEvalResult
+import common
+from healthbench_eval import GRADER_TEMPLATE, parse_json_to_dict
+from eval_types import Eval, EvalResult, SamplerBase, SingleEvalResult
 
-INPUT_PATH = "https://openaipublic.blob.core.windows.net/simple-evals/healthbench/2025-05-07-06-14-12_oss_meta_eval.jsonl"
+# INPUT_PATH = "https://openaipublic.blob.core.windows.net/simple-evals/healthbench/2025-05-07-06-14-12_oss_meta_eval.jsonl"
+INPUT_PATH = "data/2025-05-07-06-14-12_oss_meta_eval.jsonl"
 INDEX_STR_TEMPLATE = "pairwise_{model_or_physician}_{metric}_{pred_str}"
 CLUSTER_STR_TEMPLATE = "{cluster}: {index_str}"
 

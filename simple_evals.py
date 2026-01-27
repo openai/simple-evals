@@ -1,29 +1,37 @@
 import argparse
 import json
+import os
 import subprocess
 from datetime import datetime
 
 import pandas as pd
 
-from . import common
-from .browsecomp_eval import BrowseCompEval
-from .drop_eval import DropEval
-from .gpqa_eval import GPQAEval
-from .healthbench_eval import HealthBenchEval
-from .healthbench_meta_eval import HealthBenchMetaEval
-from .math_eval import MathEval
-from .mgsm_eval import MGSMEval
-from .mmlu_eval import MMLUEval
-from .humaneval_eval import HumanEval
-from .sampler.chat_completion_sampler import (
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
+import common
+from browsecomp_eval import BrowseCompEval
+from drop_eval import DropEval
+from gpqa_eval import GPQAEval
+from healthbench_eval import HealthBenchEval
+from healthbench_meta_eval import HealthBenchMetaEval
+from math_eval import MathEval
+from mgsm_eval import MGSMEval
+from mmlu_eval import MMLUEval
+from humaneval_eval import HumanEval
+from eval_types import SamplerResponse
+from sampler.chat_completion_sampler import (
     OPENAI_SYSTEM_MESSAGE_API,
     OPENAI_SYSTEM_MESSAGE_CHATGPT,
     ChatCompletionSampler,
 )
-from .sampler.claude_sampler import ClaudeCompletionSampler, CLAUDE_SYSTEM_MESSAGE_LMSYS
-from .sampler.o_chat_completion_sampler import OChatCompletionSampler
-from .sampler.responses_sampler import ResponsesSampler
-from .simpleqa_eval import SimpleQAEval
+from sampler.claude_sampler import ClaudeCompletionSampler, CLAUDE_SYSTEM_MESSAGE_LMSYS
+from sampler.o_chat_completion_sampler import OChatCompletionSampler
+from sampler.responses_sampler import ResponsesSampler
+from sampler.aliyun_sampler import AliyunSampler
+from sampler.wandou_sampler import WandouSampler
+from simpleqa_eval import SimpleQAEval
 
 
 def main():
@@ -233,12 +241,28 @@ def main():
         "claude-3-haiku-20240307": ClaudeCompletionSampler(
             model="claude-3-haiku-20240307",
         ),
+        "aliyun-qwen-plus": AliyunSampler(
+            model="qwen-plus",
+            api_key=os.environ.get("PROXY_API_KEY"),
+            max_tokens=2048,
+        ),
+        "aliyun-qwen-max": AliyunSampler(
+            model="qwen-max",
+            api_key=os.environ.get("PROXY_API_KEY"),
+            max_tokens=2048,
+        ),
+        "wandou": WandouSampler(
+            model="wandou-custom",
+            api_endpoint=os.environ.get("WANDOU_API_ENDPOINT", ""),
+            api_key=os.environ.get("WANDOU_API_KEY", ""),
+            max_tokens=2048,
+        ),
     }
 
     if args.list_models:
         print("Available models:")
         for model_name in models.keys():
-            print(f" - {model_name}")
+            print(" - {}".format(model_name))
         return
 
     if args.model:
@@ -251,11 +275,24 @@ def main():
 
     print(f"Running with args {args}")
 
-    grading_sampler = ChatCompletionSampler(
-        model="gpt-4.1-2025-04-14",
-        system_message=OPENAI_SYSTEM_MESSAGE_API,
-        max_tokens=2048,
-    )
+    # Check if we should use Aliyun model as grader
+    use_aliyun_grader = os.environ.get("USE_ALIYUN_GRADER", "").lower() == "true"
+    
+    if use_aliyun_grader:
+        grading_sampler = AliyunSampler(
+            model=os.environ.get("ALIYUN_GRADING_MODEL", "qwen-plus"),
+            api_key=os.environ.get("PROXY_API_KEY"),
+            temperature=0.0,  # Lower temperature for more consistent grading
+            max_tokens=2048,
+        )
+        print("Using Aliyun model as grader")
+    else:
+        grading_sampler = ChatCompletionSampler(
+            model="gpt-4.1-2025-04-14",
+            system_message=OPENAI_SYSTEM_MESSAGE_API,
+            max_tokens=2048,
+        )
+    
     equality_checker = ChatCompletionSampler(model="gpt-4-turbo-preview")
     # ^^^ used for fuzzy matching, just for math
 
@@ -264,74 +301,73 @@ def main():
             args.examples if args.examples is not None else (5 if debug_mode else None)
         )
         # Set num_examples = None to reproduce full evals
-        match eval_name:
-            case "mmlu":
-                return MMLUEval(num_examples=1 if debug_mode else num_examples)
-            case "math":
-                return MathEval(
-                    equality_checker=equality_checker,
-                    num_examples=num_examples,
-                    n_repeats=1 if debug_mode else args.n_repeats or 10,
-                )
-            case "gpqa":
-                return GPQAEval(
-                    n_repeats=1 if debug_mode else args.n_repeats or 10,
-                    num_examples=num_examples,
-                )
-            case "mgsm":
-                return MGSMEval(
-                    num_examples_per_lang=10 if debug_mode else num_examples or 250
-                )
-            case "drop":
-                return DropEval(
-                    num_examples=10 if debug_mode else num_examples,
-                    train_samples_per_prompt=3,
-                )
-            case "humaneval":
-                return HumanEval(num_examples=10 if debug_mode else num_examples)
-            case "simpleqa":
-                return SimpleQAEval(
-                    grader_model=grading_sampler,
-                    num_examples=10 if debug_mode else num_examples,
-                )
-            case "browsecomp":
-                return BrowseCompEval(
-                    grader_model=grading_sampler,
-                    num_examples=10 if debug_mode else num_examples,
-                )
-            case "healthbench":
-                return HealthBenchEval(
-                    grader_model=grading_sampler,
-                    num_examples=10 if debug_mode else num_examples,
-                    n_repeats=args.n_repeats or 1,
-                    n_threads=args.n_threads or 1,
-                    subset_name=None,
-                )
-            case "healthbench_hard":
-                return HealthBenchEval(
-                    grader_model=grading_sampler,
-                    num_examples=10 if debug_mode else num_examples,
-                    n_repeats=args.n_repeats or 1,
-                    n_threads=args.n_threads or 1,
-                    subset_name="hard",
-                )
-            case "healthbench_consensus":
-                return HealthBenchEval(
-                    grader_model=grading_sampler,
-                    num_examples=10 if debug_mode else num_examples,
-                    n_repeats=args.n_repeats or 1,
-                    n_threads=args.n_threads or 1,
-                    subset_name="consensus",
-                )
-            case "healthbench_meta":
-                return HealthBenchMetaEval(
-                    grader_model=grading_sampler,
-                    num_examples=10 if debug_mode else num_examples,
-                    n_repeats=args.n_repeats or 1,
-                    n_threads=args.n_threads or 1,
-                )
-            case _:
-                raise Exception(f"Unrecognized eval type: {eval_name}")
+        if eval_name == "mmlu":
+            return MMLUEval(num_examples=1 if debug_mode else num_examples)
+        elif eval_name == "math":
+            return MathEval(
+                equality_checker=equality_checker,
+                num_examples=num_examples,
+                n_repeats=1 if debug_mode else args.n_repeats or 10,
+            )
+        elif eval_name == "gpqa":
+            return GPQAEval(
+                n_repeats=1 if debug_mode else args.n_repeats or 10,
+                num_examples=num_examples,
+            )
+        elif eval_name == "mgsm":
+            return MGSMEval(
+                num_examples_per_lang=10 if debug_mode else num_examples or 250
+            )
+        elif eval_name == "drop":
+            return DropEval(
+                num_examples=10 if debug_mode else num_examples,
+                train_samples_per_prompt=3,
+            )
+        elif eval_name == "humaneval":
+            return HumanEval(num_examples=10 if debug_mode else num_examples)
+        elif eval_name == "simpleqa":
+            return SimpleQAEval(
+                grader_model=grading_sampler,
+                num_examples=10 if debug_mode else num_examples,
+            )
+        elif eval_name == "browsecomp":
+            return BrowseCompEval(
+                grader_model=grading_sampler,
+                num_examples=10 if debug_mode else num_examples,
+            )
+        elif eval_name == "healthbench":
+            return HealthBenchEval(
+                grader_model=grading_sampler,
+                num_examples=10 if debug_mode else num_examples,
+                n_repeats=args.n_repeats or 1,
+                n_threads=args.n_threads or 1,
+                subset_name=None,
+            )
+        elif eval_name == "healthbench_hard":
+            return HealthBenchEval(
+                grader_model=grading_sampler,
+                num_examples=10 if debug_mode else num_examples,
+                n_repeats=args.n_repeats or 1,
+                n_threads=args.n_threads or 1,
+                subset_name="hard",
+            )
+        elif eval_name == "healthbench_consensus":
+            return HealthBenchEval(
+                grader_model=grading_sampler,
+                num_examples=10 if debug_mode else num_examples,
+                n_repeats=args.n_repeats or 1,
+                n_threads=args.n_threads or 1,
+                subset_name="consensus",
+            )
+        elif eval_name == "healthbench_meta":
+            return HealthBenchMetaEval(
+                grader_model=grading_sampler,
+                num_examples=10 if debug_mode else num_examples,
+                n_repeats=args.n_repeats or 1,
+                n_threads=args.n_threads or 1,
+            )
+        else:
+            raise Exception("Unrecognized eval type: {}".format(eval_name))
 
     if args.eval:
         evals_list = args.eval.split(",")

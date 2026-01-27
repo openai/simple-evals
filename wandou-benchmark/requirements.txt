@@ -1,0 +1,9 @@
+blobfile
+numpy
+pandas
+requests
+tqdm
+jinja2
+openai
+anthropic
+scipy

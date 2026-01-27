@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "simple-evals"
+version = "0.1.0"
+dependencies = [
+    "pandas",
+    "blobfile",
+    "numpy",
+    "tqdm",
+    "openai",
+    "anthropic"
+]
+
+[project.optional-dependencies]
+dev = ["pytest"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["simple_evals*"]
