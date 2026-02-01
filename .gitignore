@@ -128,3 +128,7 @@ dmypy.json
 # Pyre type checker
 .pyre/
 data/2025-05-07-06-14-12_oss_eval*
+
+# HealthBench evaluation results
+evaluation_results/*.json
+evaluation_results/*.png

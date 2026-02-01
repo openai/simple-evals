@@ -27,6 +27,7 @@ import numpy as np
 import pandas as pd
 
 import common
+from common import ANSWER_PATTERN_MULTICHOICE, format_multichoice_question
 from sampler.chat_completion_sampler import (
     OPENAI_SYSTEM_MESSAGE_API,
     ChatCompletionSampler,
@@ -35,7 +36,8 @@ from sampler.aliyun_sampler import AliyunSampler
 from eval_types import Eval, EvalResult, MessageList, SamplerBase, SingleEvalResult
 
 # INPUT_PATH = "https://openaipublic.blob.core.windows.net/simple-evals/healthbench/2025-05-07-06-14-12_oss_eval.jsonl"
-INPUT_PATH = "data/2025-05-07-06-14-12_oss_eval.jsonl"
+# INPUT_PATH = "data/2025-05-07-06-14-12_oss_eval.jsonl"
+INPUT_PATH = "data/10tests_standard.jsonl"
 INPUT_PATH_HARD = "https://openaipublic.blob.core.windows.net/simple-evals/healthbench/hard_2025-05-08-21-00-10.jsonl"
 INPUT_PATH_CONSENSUS = "https://openaipublic.blob.core.windows.net/simple-evals/healthbench/consensus_2025-05-09-20-00-46.jsonl"
 
@@ -166,6 +168,34 @@ def get_usage_dict(response_usage) -> dict[str, int | None]:
             "total_tokens": None,
         }
 
+    # Check if response_usage is a dictionary
+    if isinstance(response_usage, dict):
+        try:
+            return {
+                "input_tokens": response_usage.get("input_tokens", response_usage.get("prompt_tokens", 0)),
+                "input_cached_tokens": response_usage.get("input_cached_tokens") or (
+                    response_usage.get("input_tokens_details", {}).get("cached_tokens")
+                    if isinstance(response_usage.get("input_tokens_details"), dict)
+                    else response_usage.get("prompt_tokens_details", {}).get("cached_tokens")
+                ),
+                "output_tokens": response_usage.get("output_tokens", response_usage.get("completion_tokens", 0)),
+                "output_reasoning_tokens": response_usage.get("output_reasoning_tokens") or (
+                    response_usage.get("output_tokens_details", {}).get("reasoning_tokens")
+                    if isinstance(response_usage.get("output_tokens_details"), dict)
+                    else response_usage.get("completion_tokens_details", {}).get("reasoning_tokens")
+                ),
+                "total_tokens": response_usage.get("total_tokens", 0),
+            }
+        except Exception:
+            # Fallback if dictionary access fails
+            return {
+                "input_tokens": None,
+                "input_cached_tokens": None,
+                "output_tokens": None,
+                "output_reasoning_tokens": None,
+                "total_tokens": None,
+            }
+    
     try:
         return {
             "input_tokens": response_usage.input_tokens,

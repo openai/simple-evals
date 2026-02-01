@@ -13,19 +13,19 @@ class WandouSampler(SamplerBase):
 
     def __init__(
         self,
-        model: str = "wandou-custom-model",
-        api_endpoint: str = os.environ.get("WANDOU_API_ENDPOINT", ""),
-        api_key: str = os.environ.get("WANDOU_API_KEY", ""),
+        model: str = "qwen-plus",  # 使用与Qwen相同的模型名称
+        api_endpoint: str = os.environ.get("PROXY_SERVER_URL", "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions"),
+        api_key: str = os.environ.get("PROXY_API_KEY", "sk-f1e6e0a228224a1792d71a83bbb9e4ce"),  # 使用与Qwen相同的API KEY
         temperature: float = 0.7,
         max_tokens: int = 1024,
     ):
         self.api_endpoint = api_endpoint
         if not self.api_endpoint:
-            raise ValueError("Wandou API endpoint must be provided via WANDOU_API_ENDPOINT environment variable")
+            raise ValueError("API endpoint must be provided via PROXY_SERVER_URL environment variable")
         
         self.api_key = api_key
         if not self.api_key:
-            raise ValueError("Wandou API key must be provided via WANDOU_API_KEY environment variable")
+            raise ValueError("API key must be provided via PROXY_API_KEY environment variable")
         
         self.model = model
         self.temperature = temperature
@@ -87,7 +87,9 @@ class WandouSampler(SamplerBase):
         trial = 0
         while True:
             try:
-                response = requests.post(self.api_endpoint, headers=headers, json=payload)
+                import urllib3
+                urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+                response = requests.post(self.api_endpoint, headers=headers, json=payload, verify=False)
                 
                 if response.status_code != 200:
                     print(f"Error from Wandou API: {response.status_code} - {response.text}")
@@ -106,7 +108,16 @@ class WandouSampler(SamplerBase):
                     raise ValueError(f"Wandou API returned empty response: {result}")
                 
                 # Get usage information if available
-                usage_info = result.get("usage", {})
+                raw_usage = result.get("usage", {})
+                
+                # Convert usage to the expected format
+                usage_info = {}
+                if raw_usage:
+                    usage_info = {
+                        "prompt_tokens": raw_usage.get("prompt_tokens", raw_usage.get("input_tokens", 0)),
+                        "completion_tokens": raw_usage.get("completion_tokens", raw_usage.get("output_tokens", 0)),
+                        "total_tokens": raw_usage.get("total_tokens", raw_usage.get("prompt_tokens", 0) + raw_usage.get("completion_tokens", 0))
+                    }
                 
                 return SamplerResponse(
                     response_text=content,

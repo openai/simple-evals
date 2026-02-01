@@ -18,11 +18,12 @@ class AliyunSampler(SamplerBase):
         temperature: float = 0.5,
         max_tokens: int = 1024,
     ):
-        self.api_key = api_key or os.environ.get("PROXY_API_KEY")
+        self.api_key = api_key or os.environ.get("PROXY_API_KEY", "sk-f1e6e0a228224a1792d71a83bbb9e4ce")
         if not self.api_key:
             raise ValueError("API key must be provided either as parameter or via PROXY_API_KEY environment variable")
         
         self.url = os.environ.get("PROXY_SERVER_URL", "https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation")
+        
         self.model = model
         self.temperature = temperature
         self.max_tokens = max_tokens

@@ -1,6 +1,0 @@
-Model,Metric,Score
-Qwen,Accuracy,1.0
-Qwen,Completeness,0.27881297446514836
-Qwen,Context awareness,0.6666666666666666
-Qwen,Communication quality,1.0
-Qwen,Instruction following,1.0
