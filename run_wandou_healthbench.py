@@ -22,7 +22,8 @@ def run_healthbench_for_wandou(
     num_examples=None,
     output_dir="/tmp",
     custom_input_path=None,
-    interactive=True  # 新增参数，用于控制是否显示实时输出
+    interactive=True,  # 新增参数，用于控制是否显示实时输出
+    n_threads=1  # 新增参数，控制并行线程数
 ):
     """
     Run HealthBench evaluation for wandou model
@@ -43,7 +44,7 @@ def run_healthbench_for_wandou(
             subset_name="hard" if eval_type == "healthbench_hard" 
                         else "consensus" if eval_type == "healthbench_consensus" 
                         else None,
-            n_threads=1  # 使用单线程以获得更好的实时输出
+            n_threads=n_threads  # 使用指定的线程数
         )
     
     # Run the evaluation with real-time output
@@ -164,6 +165,7 @@ def main():
     parser.add_argument("--api-key", type=str, help="API key for wandou model")
     parser.add_argument("--api-endpoint", type=str, help="API endpoint for wandou model")
     parser.add_argument("--interactive", action="store_true", help="Show real-time output during evaluation")
+    parser.add_argument("--n-threads", type=int, default=1, help="Number of threads for parallel processing (default: 1)")
     
     args = parser.parse_args()
     
@@ -179,7 +181,8 @@ def main():
         eval_type=args.eval_type,
         num_examples=args.examples,
         output_dir=args.output_dir,
-        interactive=args.interactive
+        interactive=args.interactive,
+        n_threads=args.n_threads
     )
     
     print("Evaluation summary:")
