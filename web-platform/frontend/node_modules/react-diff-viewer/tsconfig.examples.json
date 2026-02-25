@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "experimentalDecorators": true,
+    "jsx": "react",
+    "module": "es6",
+    "moduleResolution": "node",
+    "noImplicitAny": true,
+    "target": "es5",
+    "downlevelIteration": true,
+    "lib": ["es2017", "dom"]
+  },
+  "exclude": ["node_modules"]
+}

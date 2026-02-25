@@ -1,0 +1,23 @@
+{
+  "extends": ["airbnb-base", "plugin:@typescript-eslint/recommended"],
+  "rules": {
+    "no-tabs": "off",
+    "@typescript-eslint/indent": ["error", 2],
+    "max-len": ["error", {
+      "code": 100
+    }],
+    "arrow-body-style": "off",
+  },
+  "settings": {
+    "import/resolver": {
+      "node": {
+        "extensions": [".js", ".jsx", ".ts", ".tsx"]
+      }
+    }
+  },
+  "env": {
+    "mocha": true,
+    "node": true,
+    "browser": true,
+  },
+}

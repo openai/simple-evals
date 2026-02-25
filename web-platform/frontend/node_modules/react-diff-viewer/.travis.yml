@@ -1,0 +1,13 @@
+language: node_js
+node_js: 12
+before_script: yarn build
+after_success: './publish-examples.sh'
+deploy:
+  skip_cleanup: true
+  provider: npm
+  email: praneshpranesh@gmail.com
+  api_key:
+    secure: ytHogDV6wWZKY3eCgdJ5TFCz57llxTe6W1EuLBbg3TvHfpAmcL5XzT77T0lNTYY95XmABwGpf4qvqui1fXVoFqqSXVPSVt9I1aQ4gxBzxPKHGPV++wwgVOBfZErIlYPW4kcYJQvfemBDBfAMQS2u/0si5mZbeyVkvlnhHLnylsc1sJUGGnq9PJxwCagBd/DAhYYCU5d4a9psOwo6GnAwzs37rgVIb5oNhbtex0r1u5D4irweVz4V1TkwhMczw3v8t0d+I2REqjGkqLdKJOt9Q/Uqc7v34wIAy4Xng8zla7PKlzVNDlsA19en4DezJ/YRU3o6JxsMICRDyIRcwaebX2S7S35cif2gJRSF+LRCq2XdHvDAXPt6trQoeo9mSdq6+dL4/uYbhliUOyhzw84CRdY3+VrST1h7h8LAGODQzYJbQs20PkVL2527Bk+eS+tNCNpr/jSWG/iDO477j9jTGNVloF2IRHikbnZDFcF4ZrKE5RHEWSbQzyHkOOTgo5k+p6Doyv4jSgdLlnck2+f5n4Ocs/xh1c0UAphdW/mw/8lAv0+gpoL8f3rfN4AD5LYjjQ7xK5yO6RfIzsmAOqs7WCyY0ewXaPaP6Nz+Ne5Q2CKwVZiqj3qvd4o3aJodnquJ1iKzxbNHd/LFScEQxYSslyRluHrM+7DASPfccA7ePnE=
+  on:
+    tags: true
+    repo: praneshr/react-diff-viewer

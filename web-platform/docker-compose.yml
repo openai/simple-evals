@@ -1,0 +1,62 @@
+version: '3.8'
+
+services:
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/app/data
+      - ./backend:/app
+    environment:
+      - DATABASE_URL=sqlite:///app/data/eval_platform.db
+      - REDIS_URL=redis://redis:6379/0
+      - DATA_DIR=/app/data
+    depends_on:
+      - redis
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+  celery-worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    volumes:
+      - ./data:/app/data
+      - ./backend:/app
+      - /Users/davidliu/Git/wandou_benchmark/simple-evals:/app/simple-evals
+    environment:
+      - DATABASE_URL=sqlite:///app/data/eval_platform.db
+      - REDIS_URL=redis://redis:6379/0
+      - DATA_DIR=/app/data
+    depends_on:
+      - redis
+      - backend
+    command: celery -A app.core.celery_app worker --loglevel=info -Q eval_queue -n eval_worker@%h
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - VITE_API_URL=http://localhost:8000
+    depends_on:
+      - backend
+    command: npm run dev -- --host
+
+volumes:
+  redis_data:

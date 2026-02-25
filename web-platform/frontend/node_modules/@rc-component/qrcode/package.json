@@ -1,0 +1,72 @@
+{
+  "name": "@rc-component/qrcode",
+  "version": "1.1.1",
+  "description": "base abstract trigger component for react",
+  "engines": {
+    "node": ">=8.x"
+  },
+  "keywords": [
+    "react",
+    "react-component",
+    "react-qrcode",
+    "qrcode"
+  ],
+  "homepage": "https://github.com/react-component/qrcode",
+  "author": "",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/react-component/qrcode.git"
+  },
+  "bugs": {
+    "url": "https://github.com/react-component/qrcode/issues"
+  },
+  "files": [
+    "es",
+    "lib",
+    "assets/**/*.css",
+    "assets/**/*.less"
+  ],
+  "license": "MIT",
+  "main": "./lib/index",
+  "module": "./es/index",
+  "scripts": {
+    "start": "dumi dev",
+    "build": "dumi build",
+    "compile": "father build && lessc assets/index.less assets/index.css",
+    "prepublishOnly": "npm run compile && rc-np",
+    "lint": "eslint src/ docs/examples/ --ext .tsx,.ts,.jsx,.js",
+    "test": "rc-test",
+    "coverage": "rc-test --coverage",
+    "now-build": "npm run build"
+  },
+  "dependencies": {
+    "@babel/runtime": "^7.24.7"
+  },
+  "devDependencies": {
+    "@ant-design/tools": "^18.0.2",
+    "@rc-component/father-plugin": "^1.0.0",
+    "@rc-component/np": "^1.0.0",
+    "@testing-library/jest-dom": "^6.1.4",
+    "@testing-library/react": "^16.0.0",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^24.7.1",
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.1",
+    "@umijs/fabric": "^4.0.1",
+    "dumi": "^2.1.0",
+    "eslint": "^8.51.0",
+    "father": "^4.0.0",
+    "jest-canvas-mock": "^2.5.2",
+    "less": "^4.2.0",
+    "rc-test": "^7.0.13",
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0",
+    "ts-jest": "^29.1.4",
+    "typescript": "^5.1.6"
+  },
+  "peerDependencies": {
+    "react": ">=16.9.0",
+    "react-dom": ">=16.9.0"
+  },
+  "packageManager": "pnpm@9.8.0+sha512.8e4c3550fb500e808dbc30bb0ce4dd1eb614e30b1c55245f211591ec2cdf9c611cabd34e1364b42f564bd54b3945ed0f49d61d1bbf2ec9bd74b866fcdc723276"
+}

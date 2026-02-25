@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "experimentalDecorators": true,
+    "jsx": "react",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "noImplicitAny": true,
+    "target": "es5",
+    "declaration": true,
+    "downlevelIteration": true,
+    "lib": ["es2017", "dom"],
+    "types": [
+      "mocha",
+      "node"
+    ]
+  },
+  "include": ["./src/*", "enzyme.js"],
+  "exclude": ["node_modules"],
+}

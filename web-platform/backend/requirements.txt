@@ -1,0 +1,13 @@
+fastapi==0.109.0
+uvicorn[standard]==0.27.0
+sqlalchemy==2.0.25
+alembic==1.13.1
+pydantic==2.5.3
+pydantic-settings==2.1.0
+python-multipart==0.0.6
+aiofiles==23.2.1
+celery==5.3.6
+redis==5.0.1
+python-dotenv==1.0.0
+pytest==7.4.4
+httpx==0.26.0
