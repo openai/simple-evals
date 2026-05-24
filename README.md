@@ -82,6 +82,7 @@ This repository currently contains the following evals:
 - HumanEval: Evaluating Large Language Models Trained on Code, reference https://arxiv.org/abs/2107.03374, https://github.com/openai/human-eval, [MIT License](https://github.com/openai/human-eval/blob/master/LICENSE)
 - SimpleQA: Measuring short-form factuality in large language models, reference: https://openai.com/index/introducing-simpleqa, [MIT License](https://github.com/openai/simple-evals/blob/main/LICENSE)
 - BrowseComp: A Simple Yet Challenging Benchmark for Browsing Agents, reference: https://openai.com/index/browsecomp, [MIT License](https://github.com/openai/simple-evals/blob/main/LICENSE)
+- ArxivRollBench: A rolling benchmark for evaluating recent scientific text reasoning from arXiv papers, references: https://ojs.aaai.org/index.php/AAAI/article/view/41098, https://arxivrollbench.github.io/
 - HealthBench: Evaluating Large Language Models Towards Improved Human Health, reference: https://openai.com/index/healthbench, [MIT License](https://github.com/openai/simple-evals/blob/main/LICENSE)
 
 ## Samplers
@@ -111,6 +112,11 @@ pip install openai
 For the [Anthropic API](https://docs.anthropic.com/claude/docs/quickstart-guide):
 ```bash
 pip install anthropic
+```
+
+For ArxivRollBench:
+```bash
+pip install datasets
 ```
 
 ## Running the evals
