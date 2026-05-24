@@ -6,6 +6,7 @@ from datetime import datetime
 import pandas as pd
 
 from . import common
+from .arxivrollbench_eval import ArxivRollBenchEval
 from .browsecomp_eval import BrowseCompEval
 from .drop_eval import DropEval
 from .gpqa_eval import GPQAEval
@@ -386,6 +387,16 @@ def main():
                 return BrowseCompEval(
                     grader_model=grading_sampler,
                     num_examples=10 if debug_mode else num_examples,
+                )
+            case "arxivrollbench":
+                return ArxivRollBenchEval(
+                    split="compact",
+                    num_examples=5 if debug_mode else num_examples,
+                )
+            case "arxivrollbench_full":
+                return ArxivRollBenchEval(
+                    split="full",
+                    num_examples=5 if debug_mode else num_examples,
                 )
             case "healthbench":
                 return HealthBenchEval(
