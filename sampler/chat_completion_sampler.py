@@ -1,4 +1,5 @@
 import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Any
 
 import openai
@@ -17,6 +18,8 @@ class ChatCompletionSampler(SamplerBase):
     """
     Sample from OpenAI's chat completion API
     """
+
+    supports_batch = True
 
     def __init__(
         self,
@@ -94,3 +97,18 @@ class ChatCompletionSampler(SamplerBase):
                 time.sleep(exception_backoff)
                 trial += 1
             # unknown error shall throw exception
+
+    def batch(self, message_lists: list[MessageList]) -> list[SamplerResponse]:
+        results: list[SamplerResponse | None] = [None] * len(message_lists)
+        max_workers = min(len(message_lists), 10)
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            futures = {
+                executor.submit(self, message_list): i
+                for i, message_list in enumerate(message_lists)
+            }
+            for future in as_completed(futures):
+                i = futures[future]
+                results[i] = future.result()
+        if any(result is None for result in results):
+            raise RuntimeError("Batch sampling returned incomplete results")
+        return [result for result in results if result is not None]

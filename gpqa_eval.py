@@ -4,10 +4,13 @@ David Rein, Betty Li Hou, Asa Cooper Stickland, Jackson Petty, Richard Yuanzhe P
 https://arxiv.org/abs/2311.12022
 """
 
+import os
 import random
 import re
+import warnings
 
 import pandas
+from tqdm import tqdm
 
 from . import common
 from .common import ANSWER_PATTERN_MULTICHOICE, HTML_JINJA, format_multichoice_question
@@ -20,6 +23,7 @@ class GPQAEval(Eval):
         n_repeats: int = 4,
         variant: str = "diamond",
         num_examples: int | None = None,  # restrict to a subset of the data for debugging
+        batch_size: int | None = None,
     ):
         df = pandas.read_csv(
             f"https://openaipublic.blob.core.windows.net/simple-evals/gpqa_{variant}.csv"
@@ -33,9 +37,12 @@ class GPQAEval(Eval):
         examples = [example | {"permutation": rng.sample(range(4), 4)} for example in examples]
         self.examples = examples
         self.n_repeats = n_repeats
+        if batch_size is not None and batch_size < 1:
+            raise ValueError("batch_size must be >= 1")
+        self.batch_size = batch_size
 
     def __call__(self, sampler: SamplerBase) -> EvalResult:
-        def fn(row: dict):
+        def build_prompt(row: dict) -> tuple[MessageList, str]:
             choices = [
                 row["Correct Answer"],
                 row["Incorrect Answer 1"],
@@ -53,7 +60,11 @@ class GPQAEval(Eval):
                     content=format_multichoice_question(choices_dict), role="user"
                 )
             ]
-            sampler_response = sampler(prompt_messages)
+            return prompt_messages, correct_answer
+
+        def build_result(
+            correct_answer: str, sampler_response
+        ) -> SingleEvalResult:
             response_text = sampler_response.response_text
             actual_queried_prompt_messages = sampler_response.actual_queried_message_list
             match = re.search(ANSWER_PATTERN_MULTICHOICE, response_text)
@@ -70,6 +81,40 @@ class GPQAEval(Eval):
             return SingleEvalResult(
                 html=html, score=score, convo=convo, metrics={"chars": len(response_text)}
             )
+
+        if self.batch_size is not None:
+            supports_batch = getattr(sampler, "supports_batch", False) or (
+                type(sampler).batch is not SamplerBase.batch
+            )
+            if supports_batch:
+                prepared = [build_prompt(row) for row in self.examples]
+                results: list[SingleEvalResult] = []
+                disable_pbar = bool(os.getenv("debug"))
+                with tqdm(total=len(prepared), disable=disable_pbar) as pbar:
+                    for start in range(0, len(prepared), self.batch_size):
+                        batch = prepared[start : start + self.batch_size]
+                        message_lists = [item[0] for item in batch]
+                        responses = list(sampler.batch(message_lists))
+                        if len(responses) != len(batch):
+                            raise ValueError(
+                                "Sampler batch returned a different number of responses"
+                            )
+                        for (_, correct_answer), sampler_response in zip(
+                            batch, responses
+                        ):
+                            results.append(build_result(correct_answer, sampler_response))
+                        pbar.update(len(batch))
+                return common.aggregate_results(results)
+            warnings.warn(
+                "GPQAEval batch_size set but sampler does not support batch; "
+                "falling back to per-example evaluation.",
+                RuntimeWarning,
+            )
+
+        def fn(row: dict):
+            prompt_messages, correct_answer = build_prompt(row)
+            sampler_response = sampler(prompt_messages)
+            return build_result(correct_answer, sampler_response)
 
         results = common.map_with_progress(fn, self.examples)
         return common.aggregate_results(results)

@@ -60,6 +60,12 @@ def main():
         "--examples", type=int, help="Number of examples to use (overrides default)"
     )
     parser.add_argument(
+        "--batch-size",
+        type=int,
+        default=None,
+        help="Batch size for evals that support sampler.batch (e.g., GPQA)",
+    )
+    parser.add_argument(
         "--healthbench-input-path",
         type=str,
         default=None,
@@ -365,6 +371,7 @@ def main():
                 return GPQAEval(
                     n_repeats=1 if debug_mode else args.n_repeats or 10,
                     num_examples=num_examples,
+                    batch_size=args.batch_size,
                 )
             case "mgsm":
                 return MGSMEval(
