@@ -21,11 +21,19 @@ class SamplerBase:
     or used as part of the grading process.
     """
 
+    supports_batch = False
+
     def __call__(
         self, 
         message_list: MessageList,
     ) -> SamplerResponse:
         raise NotImplementedError
+
+    def batch(self, message_lists: list[MessageList]) -> list[SamplerResponse]:
+        """
+        Optional batch API. Override in samplers that can handle multiple prompts.
+        """
+        return [self(message_list) for message_list in message_lists]
 
 
 @dataclass
