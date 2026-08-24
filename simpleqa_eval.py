@@ -96,6 +96,22 @@ CHOICE_LETTERS = ["A", "B", "C"]
 CHOICE_STRINGS = ["CORRECT", "INCORRECT", "NOT_ATTEMPTED"]
 CHOICE_LETTER_TO_STRING = dict(zip(CHOICE_LETTERS, CHOICE_STRINGS))
 
+
+def parse_grader_response(grading_response: str) -> str:
+    """Parse an unambiguous letter or named SimpleQA grade."""
+    label_patterns = {
+        "A": r"\b(?:A|CORRECT)\b",
+        "B": r"\b(?:B|INCORRECT)\b",
+        "C": r"\b(?:C|NOT[ _]ATTEMPTED)\b",
+    }
+    matched_labels = {
+        label
+        for label, pattern in label_patterns.items()
+        if re.search(pattern, grading_response, flags=re.IGNORECASE)
+    }
+    return matched_labels.pop() if len(matched_labels) == 1 else "C"
+
+
 class SimpleQAEval(Eval):
     def __init__(self, grader_model: SamplerBase, num_examples: int | None = None, n_repeats: int = 1):
         df = pandas.read_csv(
@@ -122,8 +138,7 @@ class SimpleQAEval(Eval):
         sampler_response = self.grader_model(prompt_messages)   
         grading_response = sampler_response.response_text
         
-        match = re.search(r"(A|B|C)", grading_response)
-        return match.group(0) if match else "C"  # Default to "NOT_ATTEMPTED" if no match
+        return parse_grader_response(grading_response)
 
     def __call__(self, sampler: SamplerBase) -> EvalResult:
             def fn(row: dict):
@@ -193,4 +208,3 @@ class SimpleQAEval(Eval):
             
             return common.aggregate_results(results)
     
-
