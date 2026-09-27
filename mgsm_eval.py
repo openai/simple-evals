@@ -168,6 +168,7 @@ class MGSMEval(Eval):
                 actual_queried_prompt_messages = sampler_response.actual_queried_message_list
             except Exception as e:
                 response_text = ""
+                actual_queried_prompt_messages = prompt_messages
 
             answer_prefix = LANG_TO_ANSWER_PREFIX[language]
             extracted_answer = parse_answer(response_text, answer_prefix)
