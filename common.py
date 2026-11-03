@@ -312,7 +312,7 @@ _report_template = """<!DOCTYPE html>
     </tr>
     <tr>
         <td><b>Score</b></td>
-        <td>{{ score | float | round(3) }}</td>
+        <td>{{ score | float | round(3) if score is not none else "N/A" }}</td>
     </tr>
     {% for name, value in metrics.items() %}
     <tr>

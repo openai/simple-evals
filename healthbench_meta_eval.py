@@ -31,6 +31,8 @@ HEALTHBENCH_META_HTML_JINJA = (
 
 
 class HealthBenchMetaEval(Eval):
+    """Evaluate grader agreement, returning score=None when balanced F1 is undefined."""
+
     def __init__(
         self,
         grader_model: SamplerBase,
@@ -175,7 +177,9 @@ class HealthBenchMetaEval(Eval):
         }
         assert final_metrics.metrics is not None
         final_metrics.metrics.update(model_agreement_metrics_condensed)
-        final_metrics.score = final_metrics.metrics["pairwise_model_f1_balanced"]
+        # Balanced F1 is omitted when a class has no predictions or reference labels.
+        # Preserve that undefined state instead of assigning a numeric score.
+        final_metrics.score = final_metrics.metrics.get("pairwise_model_f1_balanced")
 
         final_metrics.metadata = {
             "model_agreement_metrics": model_agreement_metrics,

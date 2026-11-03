@@ -1,4 +1,10 @@
+import json
+import re
+
+import pytest
+
 from . import healthbench_meta_eval
+from .types import SamplerBase, SamplerResponse
 
 
 def test_compute_agreement_for_rater_by_class():
@@ -159,6 +165,81 @@ def test_compute_agreement_for_rater_by_class():
     assert index_str_pos_f1 not in metrics
     assert index_str_neg_f1 not in metrics
     assert index_str_balanced_f1 not in metrics
+
+
+@pytest.mark.parametrize(
+    "predictions, physician_labels, expected_score",
+    [
+        ([True, True], [[True, True], [False, False]], None),
+        ([False, False], [[True, True], [False, False]], None),
+        ([True, False], [[True, True], [False, False]], 1.0),
+        ([False, True], [[True, True], [False, False]], 0.0),
+        ([True, False], [[True, True], [True, True]], None),
+        ([True, False], [[False, False], [False, False]], None),
+    ],
+    ids=[
+        "all-positive",
+        "all-negative",
+        "perfect",
+        "inverted",
+        "positive-references",
+        "negative-references",
+    ],
+)
+def test_meta_eval_handles_undefined_balanced_f1(
+    predictions, physician_labels, expected_score, tmp_path, monkeypatch
+):
+    class BooleanSampler(SamplerBase):
+        def __call__(self, message_list):
+            # Identify the row without relying on worker execution order.
+            label = predictions[int("sample-1" in message_list[0]["content"])]
+            return SamplerResponse(
+                response_text=json.dumps({"criteria_met": label}),
+                actual_queried_message_list=message_list,
+                response_metadata={},
+            )
+
+    examples = [
+        {
+            "prompt": [{"role": "user", "content": f"sample-{i}"}],
+            "completion": "Synthetic response",
+            "rubric": "Synthetic criterion",
+            "binary_labels": labels,
+            "anonymized_physician_ids": ["rater-a", "rater-b"],
+            "category": "test",
+        }
+        for i, labels in enumerate(physician_labels)
+    ]
+    input_path = tmp_path / "meta_eval.jsonl"
+    input_path.write_text(
+        "\n".join(json.dumps(row) for row in examples), encoding="utf-8"
+    )
+    monkeypatch.setattr(healthbench_meta_eval, "INPUT_PATH", str(input_path))
+    monkeypatch.setattr(healthbench_meta_eval.bf, "BlobFile", open)
+    sampler = BooleanSampler()
+    evaluation = healthbench_meta_eval.HealthBenchMetaEval(sampler, n_threads=1)
+
+    result = evaluation(sampler)
+
+    assert result.score == expected_score
+    assert len(result.htmls) == len(examples)
+    assert len(result.convos) == len(examples)
+    assert result.metrics["model_predicted_positive"] == sum(predictions) / len(
+        predictions
+    )
+    assert result.metadata["physician_agreement_metric_lists"]
+    score_key = "pairwise_model_f1_balanced"
+    if expected_score is None:
+        assert score_key not in result.metrics
+    else:
+        assert result.metrics[score_key] == expected_score
+
+    report = healthbench_meta_eval.common.make_report(result)
+    score_cell = re.search(r"<td><b>Score</b></td>\s*<td>(.*?)</td>", report)
+    assert score_cell is not None
+    assert score_cell.group(1) == (
+        "N/A" if expected_score is None else str(expected_score)
+    )
 
 
 if __name__ == "__main__":
