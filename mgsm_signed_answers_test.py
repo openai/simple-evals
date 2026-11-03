@@ -22,6 +22,8 @@ from .types import SamplerBase, SamplerResponse
         ("Answer: -0", "0", "-0", True),
         ("Answer: -0.0", "0", "-0.0", True),
         ("Answer: -42.", "-42", "-42", True),
+        ("Answer: 42 -43", "-43", "-43", True),
+        ("Answer: 42 -43", "43", "-43", False),
         ("Answer: 42\nCorrection. Answer: -42", "42", "-42", False),
         ("No final answer", "42", "", False),
     ],
@@ -31,6 +33,27 @@ def test_signed_answer_scoring(response, target, expected_prediction, expected_s
 
     assert prediction == expected_prediction
     assert mgsm_eval.score_mgsm(target, prediction) is expected_score
+
+
+@pytest.mark.parametrize(
+    "answer, expected_prediction, target",
+    [
+        ("42-43", "43", "43"),
+        ("4-2", "2", "2"),
+        ("1,000-2,000", "2000", "2,000"),
+        ("2-3", "3", "3"),
+        ("42.0-43.0", "43.0", "43"),
+        ("42-43.", "43", "43"),
+    ],
+)
+def test_hyphen_delimited_answers_preserve_last_number(
+    answer, expected_prediction, target
+):
+    prediction = mgsm_eval.parse_answer(f"Answer: {answer}", "Answer")
+
+    assert prediction == expected_prediction
+    assert mgsm_eval.score_mgsm(target, prediction)
+    assert not mgsm_eval.score_mgsm(f"-{target}", prediction)
 
 
 @pytest.mark.parametrize("language", mgsm_eval.ALL_LANGUAGES)

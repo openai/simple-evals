@@ -87,7 +87,8 @@ def parse_answer(answer: str, answer_prefix: str) -> str:
     answer_text = answer.split(answer_prefix)[-1].strip()
 
     # find all the numbers (including negative numbers and decimals) in the string
-    numbers = re.findall(r"-?\d+\.?\d*", answer_text.replace(",", ""))
+    # A hyphen directly following a digit is a separator, not a negative sign.
+    numbers = re.findall(r"(?<!\d)-?\d+\.?\d*", answer_text.replace(",", ""))
 
     # return the last number (removing trailing decimal point if present),
     # or an empty string if there were no numbers
