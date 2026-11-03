@@ -86,10 +86,10 @@ def parse_answer(answer: str, answer_prefix: str) -> str:
 
     answer_text = answer.split(answer_prefix)[-1].strip()
 
-    # find all the numbers (including decimals) in the string
-    numbers = re.findall(r"\d+\.?\d*", answer_text.replace(",", ""))
+    # find all the numbers (including negative numbers and decimals) in the string
+    numbers = re.findall(r"-?\d+\.?\d*", answer_text.replace(",", ""))
 
-    # return the first number (removing trailing decimal point if present),
+    # return the last number (removing trailing decimal point if present),
     # or an empty string if there were no numbers
     return numbers[-1].rstrip(".") if numbers else ""
 
@@ -100,6 +100,10 @@ def score_mgsm(target: str, prediction: str) -> bool:
 
     target = target.replace(",", "")
     prediction = prediction.replace(",", "")
+
+    # Signed zero remains equivalent to the integer reference zero.
+    if prediction == "-0":
+        prediction = "0"
 
     return target == prediction
 
