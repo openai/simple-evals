@@ -155,6 +155,17 @@ def format_multichoice_question(row):
     return QUERY_TEMPLATE_MULTICHOICE.format(**row)
 
 
+_YES_NO_RE = re.compile(r"^\W*(yes|no)\b", re.IGNORECASE)
+
+
+def _parse_yes_no(response_text) -> bool:
+    """Return True only when the checker's verdict is an affirmative Yes as the first word."""
+    if not response_text:
+        return False
+    m = _YES_NO_RE.match(response_text.strip())
+    return bool(m) and m.group(1).lower() == "yes"
+
+
 def check_equality(sampler: SamplerBase, expr1: str, expr2: str):
     # Guard against None (no extract) and ensure string
     if expr1 is None:
@@ -164,8 +175,7 @@ def check_equality(sampler: SamplerBase, expr1: str, expr2: str):
     prompt = EQUALITY_TEMPLATE % {"expression1": expr1, "expression2": expr2}
     sampler_response = sampler([dict(content=prompt, role="user")])
     response_text = sampler_response.response_text
-    # Tolerant parse: accept "yes", "yes.", "Yes!" or "The answer is yes"
-    return bool(re.search(r"\byes\b", response_text.lower()))
+    return _parse_yes_no(response_text)
 
 
 def _compute_stat(values: list, stat: str):
