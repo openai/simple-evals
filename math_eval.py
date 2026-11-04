@@ -50,8 +50,8 @@ class MathEval(Eval):
             sampler_response = sampler(prompt_messages)
             response_text = sampler_response.response_text
             actual_queried_prompt_messages = sampler_response.actual_queried_message_list
-            match = re.search(ANSWER_PATTERN, response_text)
-            extracted_answer = match.group(1) if match else None
+            matches = re.findall(ANSWER_PATTERN, response_text)
+            extracted_answer = matches[-1].strip() if matches else None
             score = float(check_equality(self.equality_checker, row["Answer"], extracted_answer))
             html = common.jinja_env.from_string(HTML_JINJA).render(
                 prompt_messages=actual_queried_prompt_messages,

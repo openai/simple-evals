@@ -1,5 +1,6 @@
 import io
 import os
+import re
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from multiprocessing.pool import ThreadPool
@@ -131,8 +132,8 @@ YOUR TASK
 
 Respond with only "Yes" or "No" (without quotes). Do not include a rationale.
 
-    Expression 1: %(expression1)s
-    Expression 2: %(expression2)s
+    Expression 1: "%(expression1)s"
+    Expression 2: "%(expression2)s"
 """.strip()
 
 
@@ -154,11 +155,27 @@ def format_multichoice_question(row):
     return QUERY_TEMPLATE_MULTICHOICE.format(**row)
 
 
+_YES_NO_RE = re.compile(r"^\W*(yes|no)\b", re.IGNORECASE)
+
+
+def _parse_yes_no(response_text) -> bool:
+    """Return True only when the checker's verdict is an affirmative Yes as the first word."""
+    if not response_text:
+        return False
+    m = _YES_NO_RE.match(response_text.strip())
+    return bool(m) and m.group(1).lower() == "yes"
+
+
 def check_equality(sampler: SamplerBase, expr1: str, expr2: str):
+    # Guard against None (no extract) and ensure string
+    if expr1 is None:
+        expr1 = ""
+    if expr2 is None:
+        expr2 = ""
     prompt = EQUALITY_TEMPLATE % {"expression1": expr1, "expression2": expr2}
     sampler_response = sampler([dict(content=prompt, role="user")])
     response_text = sampler_response.response_text
-    return response_text.lower().strip() == "yes"
+    return _parse_yes_no(response_text)
 
 
 def _compute_stat(values: list, stat: str):
