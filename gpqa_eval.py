@@ -57,7 +57,9 @@ class GPQAEval(Eval):
             response_text = sampler_response.response_text
             actual_queried_prompt_messages = sampler_response.actual_queried_message_list
             match = re.search(ANSWER_PATTERN_MULTICHOICE, response_text)
-            extracted_answer = match.group(1) if match else None
+            # ANSWER_PATTERN_MULTICHOICE is case-insensitive, so normalise the
+            # captured letter before comparing with the upper-case answer key.
+            extracted_answer = match.group(1).upper() if match else None
             score = 1.0 if extracted_answer == correct_answer else 0.0
             html = common.jinja_env.from_string(HTML_JINJA).render(
                 prompt_messages=actual_queried_prompt_messages,
