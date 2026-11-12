@@ -504,17 +504,15 @@ def main():
                 f.write(json.dumps(result_dict, indent=2))
                 print(f"Writing all results to {full_result_filename}")
 
-            mergekey2resultpath[f"{file_stem}"] = result_filename
+            mergekey2resultpath[(eval_name, model_name)] = result_filename
     merge_metrics = []
-    for eval_model_name, result_filename in mergekey2resultpath.items():
+    for (eval_name, model_name), result_filename in mergekey2resultpath.items():
         try:
             result = json.load(open(result_filename, "r+"))
         except Exception as e:
             print(e, result_filename)
             continue
         result = result.get("f1_score", result.get("score", None))
-        eval_name = eval_model_name[: eval_model_name.find("_")]
-        model_name = eval_model_name[eval_model_name.find("_") + 1 :]
         merge_metrics.append(
             {"eval_name": eval_name, "model_name": model_name, "metric": result}
         )
