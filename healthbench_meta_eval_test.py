@@ -1,4 +1,6 @@
-from . import healthbench_meta_eval
+import importlib
+
+healthbench_meta_eval = importlib.import_module("simple-evals.healthbench_meta_eval")
 
 
 def test_compute_agreement_for_rater_by_class():
