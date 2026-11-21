@@ -1,8 +1,9 @@
-from .healthbench_eval import (
-    RubricItem,
-    calculate_length_adjusted_score,
-    calculate_score,
-)
+import importlib
+
+_healthbench_eval = importlib.import_module("simple-evals.healthbench_eval")
+RubricItem = _healthbench_eval.RubricItem
+calculate_length_adjusted_score = _healthbench_eval.calculate_length_adjusted_score
+calculate_score = _healthbench_eval.calculate_score
 
 
 def test_calculate_score():

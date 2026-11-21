@@ -125,6 +125,15 @@ python -m simple-evals.simple_evals --model <model_name> --examples <num_example
 ```
 This will launch evaluations through the OpenAI API.
 
+## Running the tests
+
+```bash
+pip install pytest blobfile numpy pandas jinja2 requests tqdm openai
+pytest
+```
+
+The tests import this checkout as the `simple-evals` package, the same layout used by `python -m simple-evals.simple_evals`. `conftest.py` adds the parent directory to `sys.path` so `pytest` works from this directory. Do not use `python -m pytest` here: that puts the checkout first on `sys.path` and shadows the standard library `types` module before tests can load.
+
 ## Notes
 
 [^1]:chatgpt system message: "You are ChatGPT, a large language model trained by OpenAI, based on the GPT-4 architecture.\nKnowledge cutoff: 2023-12\nCurrent date: 2024-04-01"
